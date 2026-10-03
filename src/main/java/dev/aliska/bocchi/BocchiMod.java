@@ -59,6 +59,10 @@ public class BocchiMod implements ModInitializer {
   item("guitar",new GuitarItem());
   PolymerItemGroupUtils.registerPolymerItemGroup(id("little_stage"),PolymerItemGroupUtils.builder().displayName(Text.literal("BTR World")).icon(()->new ItemStack(FIGURINES.get(CharacterKind.NIJIKA))).entries((context,entries)->ITEMS.forEach(entries::add)).build());
   if (Boolean.getBoolean("bocchi.validateResources")) {
+   if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 56) {
+    throw new IllegalStateException("BTR World creative tab registration failed: " + ITEMS.size() + " player-facing entries");
+   }
+   org.slf4j.LoggerFactory.getLogger("bocchi").info("Creative tab BTR World registered with {} player-facing entries.", ITEMS.size());
    boolean built=PolymerResourcePackUtils.buildMain(java.nio.file.Path.of("polymer/bocchi-validation-pack.zip"));
    if(!built) throw new IllegalStateException("Bocchi resource pack validation failed");
    org.slf4j.LoggerFactory.getLogger("bocchi").info("Resource pack validation passed.");
