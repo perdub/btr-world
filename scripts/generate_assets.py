@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw
 import json,random,copy
 ROOT=Path(__file__).resolve().parents[1]/'src/main/resources'
 AS=ROOT/'assets/bocchi'; DATA=ROOT/'data/bocchi'
-for d in ['textures/block','textures/model','textures/item','models/block','models/item','blockstates','lang']: (AS/d).mkdir(parents=True,exist_ok=True)
+for d in ['textures/block','textures/block/model','textures/item','models/block','models/item','blockstates','lang']: (AS/d).mkdir(parents=True,exist_ok=True)
 for d in ['recipe','loot_table/blocks','advancement/recipes']: (DATA/d).mkdir(parents=True,exist_ok=True)
 def js(path,obj): path.write_text(json.dumps(obj,ensure_ascii=False,indent=2)+'\n')
 colors={'bocchi':('#efa1c4','#ffcedf','#b75b8e'),'nijika':('#efc657','#fff0a1','#b78a32'),'ryo':('#526fa4','#a4bfde','#2f426a'),'kita':('#ca5258','#f7a5a2','#843c4b')}
@@ -13,7 +13,7 @@ def lang(key,name,english):ru[key]=name;en[key]=english
 random.seed(2026)
 materials={'skin':'#ffdfc5','outline':'#3f3047','white':'#fff5e7','black':'#34313f','metal':'#9cb2bd','pink':'#f3a0c0','blue':'#74cce8','red':'#d34657','yellow':'#f1d35e','cardboard':'#ba8861','carddark':'#80553c','wood':'#99734b','green':'#6c9852'}
 for k,(base,light,dark) in colors.items(): materials[k]=base;materials[k+'_light']=light;materials[k+'_dark']=dark
-for name,color in materials.items(): Image.new('RGB',(16,16),color).save(AS/f'textures/model/{name}.png')
+for name,color in materials.items(): Image.new('RGB',(16,16),color).save(AS/f'textures/block/model/{name}.png')
 # Pixel faces belong to the newly built Minecraft models, not extracted anime artwork.
 for kind in colors:
  im=Image.new('RGB',(16,16),materials['skin']);d=ImageDraw.Draw(im)
@@ -24,15 +24,15 @@ for kind in colors:
   d.rectangle((3,6,4,8),fill=materials['outline']);d.rectangle((11,6,12,8),fill=materials['outline'])
   d.line([(6,11),(8,12),(10,11)],fill=materials['outline'],width=1)
  d.rectangle((1,10,3,11),fill='#ee9f9f');d.rectangle((12,10,14,11),fill='#ee9f9f')
- im.save(AS/f'textures/model/{kind}_face.png')
+ im.save(AS/f'textures/block/model/{kind}_face.png')
 def element(a,b,tex,north=None,rotation=None):
  faces={s:{'uv':[0,0,16,16],'texture':'#'+tex} for s in ['north','south','east','west','up','down']}
  if north: faces['north']['texture']='#'+north
  result={'from':a,'to':b,'faces':faces}
  if rotation:result['rotation']=rotation
  return result
-textures={k:'bocchi:model/'+k for k in materials}
-textures.update({k+'_face':'bocchi:model/'+k+'_face' for k in colors}); textures['particle']='bocchi:model/pink'
+textures={k:'bocchi:block/model/'+k for k in materials}
+textures.update({k+'_face':'bocchi:block/model/'+k+'_face' for k in colors}); textures['particle']='bocchi:block/model/pink'
 def model(elements,item=True):
  obj={'textures':textures,'elements':elements}
  if item: obj['display']={'gui':{'rotation':[18,145,0],'translation':[0,-3,0],'scale':[0.75,0.75,0.75]},'ground':{'translation':[0,0,0],'scale':[0.5,0.5,0.5]},'fixed':{'scale':[0.7,0.7,0.7]},'thirdperson_righthand':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[0.5,0.5,0.5]},'firstperson_righthand':{'rotation':[0,-35,0],'translation':[0,-3,0],'scale':[0.7,0.7,0.7]}}
@@ -113,8 +113,60 @@ props={
 'guitar_case':[element([4,0,4],[12,2,14],'black'),element([6,0,1],[10,2,6],'black'),element([11,1,8],[13,2,10],'metal')],
 'starry_sign':[element([1,0,7],[15,10,9],'black')]
 }
-# Pixel lettering on the sign.
-im=Image.new('RGB',(64,32),'#34313f');d=ImageDraw.Draw(im);d.rectangle((1,1,62,30),outline='#efc657',width=2);d.text((12,11),'STARRY',fill='#fff0a1');im.save(AS/'textures/model/starry.png');textures['starry']='bocchi:model/starry';props['starry_sign'][0]['faces']['north']['texture']='#starry'
+# STARRY plaque: stepped bevel silhouette, raised rim bulbs and neon lettering.
+# Authored procedural Minecraft asset; reference image is not copied into the pack.
+W,H=256,192
+im=Image.new('RGB',(W,H),'#29282c');d=ImageDraw.Draw(im)
+# Restrained deterministic metal grain.
+rng=random.Random(77)
+for y in range(H):
+ for x in range(W):
+  v=rng.randrange(36,44);im.putpixel((x,y),(v,v,v+3))
+outline=[(2,62),(80,2),(253,2),(253,157),(185,189),(2,157),(2,62)]
+d.line(outline,fill='#656368',width=3)
+# Tall outlined strokes, like bent neon tubes. T and the second R are red.
+letters={
+ 'S':[[(22,0),(5,0),(0,5),(0,20),(22,36),(22,51),(17,56),(0,56)]],
+ 'T':[[(0,0),(26,0)],[(13,0),(13,56)]],
+ 'A':[[(0,56),(0,5),(5,0),(19,0),(24,5),(24,56)],[(0,31),(24,31)]],
+ 'R':[[(0,56),(0,0),(18,0),(24,6),(24,22),(18,28),(0,28)],[(12,28),(25,56)]],
+ 'Y':[[(0,0),(12,28),(24,0)],[(12,28),(12,56)]]}
+for i,ch in enumerate('STARRY'):
+ x=19+i*36;y=61
+ paths=[[(x+px,y+py*1.35) for px,py in path] for path in letters[ch]]
+ red=i in (1,4)
+ for path in paths:
+  d.line([(px+2,py+3) for px,py in path],fill='#17171b',width=9)
+  d.line(path,fill='#7d3038' if red else '#254572',width=8)
+  d.line(path,fill='#d86a6c' if red else '#619bda',width=4)
+  d.line([(px-1,py-1) for px,py in path],fill='#ee9c99' if red else '#99c7ed',width=1)
+# Shooting star at the T.
+d.line([(52,77),(55,66),(70,49),(85,45)],fill='#da7373',width=3)
+d.polygon([(53,69),(56,74),(62,74),(58,78),(60,84),(54,81),(49,85),(50,79),(45,76),(51,75)],fill='#eb8886')
+im.save(AS/'textures/block/model/starry.png');textures['starry']='bocchi:block/model/starry'
+# Work in front-face coordinates so the text reads correctly from north.
+def signpart(u0,v0,u1,v1,z0,z1,tex):
+ e=element([16-u1,12-v1,z0],[16-u0,12-v0,z1],tex)
+ if tex=='starry':
+  for face in e['faces'].values():face['texture']='#black'
+  e['faces']['north']={'texture':'#starry','uv':[u0,v0/12*16,u1,v1/12*16]}
+ return e
+sign=[]
+for row in range(24):
+ v0=row/2;v1=v0+.5
+ left=max(0,(4-v0)*1.25)
+ right=16-max(0,(v1-10)*2)
+ sign.append(signpart(left,v0,right,v1,7,8,'starry'))
+# Lamps follow all six edges and project in front of the metal panel.
+perimeter=[(.65,4.3),(5.2,.65),(15.35,.65),(15.35,9.55),(11.6,11.35),(.65,9.55)]
+for i,(u,v) in enumerate(perimeter):
+ end=perimeter[(i+1)%len(perimeter)]
+ n=max(1,round(((end[0]-u)**2+(end[1]-v)**2)**.5/1.65))
+ for j in range(n):
+  x=u+(end[0]-u)*j/n;y=v+(end[1]-v)*j/n
+  sign.append(signpart(x-.3,y-.3,x+.3,y+.3,6.78,7,'metal'))
+  sign.append(signpart(x-.21,y-.21,x+.21,y+.21,6.55,6.78,'yellow'))
+props['starry_sign']=sign
 for ident,e in props.items():
  js(AS/f'models/block/{ident}.json',model(e,False));js(AS/f'models/item/{ident}.json',{'parent':f'bocchi:block/{ident}'})
  js(AS/f'blockstates/{ident}.json',{'variants':{'':{'model':f'bocchi:block/{ident}'}}})
