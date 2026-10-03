@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    " C ",
+    " S "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:yellow_dye"
+    },
+    "C": {
+      "item": "minecraft:clay_ball"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    }
+  },
+  "result": {
+    "id": "bocchi:nijika_figurine",
+    "count": 1
+  }
+}

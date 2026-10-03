@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    " C ",
+    " S "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:pink_dye"
+    },
+    "C": {
+      "item": "minecraft:clay_ball"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    }
+  },
+  "result": {
+    "id": "bocchi:bocchi_figurine",
+    "count": 1
+  }
+}

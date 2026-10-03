@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "DCD",
+    " T "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:white_wool"
+    },
+    "D": {
+      "item": "minecraft:yellow_dye"
+    },
+    "C": {
+      "item": "minecraft:cookie"
+    },
+    "T": {
+      "item": "minecraft:amethyst_shard"
+    }
+  },
+  "result": {
+    "id": "bocchi:nijika_plush_summoner",
+    "count": 1
+  }
+}

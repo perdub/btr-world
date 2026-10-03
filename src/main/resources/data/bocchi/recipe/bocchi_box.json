@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PPP",
+    "PIP",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:oak_planks"
+    },
+    "I": {
+      "item": "minecraft:paper"
+    }
+  },
+  "result": {
+    "id": "bocchi:bocchi_box",
+    "count": 1
+  }
+}

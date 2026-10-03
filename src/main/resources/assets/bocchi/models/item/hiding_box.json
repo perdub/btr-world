@@ -1,0 +1,381 @@
+{
+  "textures": {
+    "skin": "bocchi:model/skin",
+    "outline": "bocchi:model/outline",
+    "white": "bocchi:model/white",
+    "black": "bocchi:model/black",
+    "metal": "bocchi:model/metal",
+    "pink": "bocchi:model/pink",
+    "blue": "bocchi:model/blue",
+    "red": "bocchi:model/red",
+    "yellow": "bocchi:model/yellow",
+    "cardboard": "bocchi:model/cardboard",
+    "carddark": "bocchi:model/carddark",
+    "wood": "bocchi:model/wood",
+    "green": "bocchi:model/green",
+    "bocchi": "bocchi:model/bocchi",
+    "bocchi_light": "bocchi:model/bocchi_light",
+    "bocchi_dark": "bocchi:model/bocchi_dark",
+    "nijika": "bocchi:model/nijika",
+    "nijika_light": "bocchi:model/nijika_light",
+    "nijika_dark": "bocchi:model/nijika_dark",
+    "ryo": "bocchi:model/ryo",
+    "ryo_light": "bocchi:model/ryo_light",
+    "ryo_dark": "bocchi:model/ryo_dark",
+    "kita": "bocchi:model/kita",
+    "kita_light": "bocchi:model/kita_light",
+    "kita_dark": "bocchi:model/kita_dark",
+    "bocchi_face": "bocchi:model/bocchi_face",
+    "nijika_face": "bocchi:model/nijika_face",
+    "ryo_face": "bocchi:model/ryo_face",
+    "kita_face": "bocchi:model/kita_face",
+    "particle": "bocchi:model/pink",
+    "starry": "bocchi:model/starry"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        8,
+        1
+      ],
+      "to": [
+        15,
+        17,
+        15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cardboard"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cardboard"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cardboard"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cardboard"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cardboard"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cardboard"
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        16,
+        0
+      ],
+      "to": [
+        15,
+        17,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        16,
+        13
+      ],
+      "to": [
+        15,
+        17,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        11,
+        0.95
+      ],
+      "to": [
+        10,
+        13,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#carddark"
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        18,
+        145,
+        0
+      ],
+      "translation": [
+        0,
+        -3,
+        0
+      ],
+      "scale": [
+        0.75,
+        0.75,
+        0.75
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "fixed": {
+      "scale": [
+        0.7,
+        0.7,
+        0.7
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        -35,
+        0
+      ],
+      "translation": [
+        0,
+        -3,
+        0
+      ],
+      "scale": [
+        0.7,
+        0.7,
+        0.7
+      ]
+    }
+  }
+}

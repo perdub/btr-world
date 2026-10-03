@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    "DCD",
+    " T "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:oak_planks"
+    },
+    "D": {
+      "item": "minecraft:pink_dye"
+    },
+    "C": {
+      "item": "minecraft:cookie"
+    },
+    "T": {
+      "item": "minecraft:amethyst_shard"
+    }
+  },
+  "result": {
+    "id": "bocchi:bocchi_chibi_summoner",
+    "count": 1
+  }
+}

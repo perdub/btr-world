@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    " C ",
+    " S "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:blue_dye"
+    },
+    "C": {
+      "item": "minecraft:clay_ball"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    }
+  },
+  "result": {
+    "id": "bocchi:ryo_figurine",
+    "count": 1
+  }
+}
