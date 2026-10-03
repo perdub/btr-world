@@ -27,6 +27,21 @@ for p in (A/'blockstates').glob('*.json'):
  assert (D/'loot_table/blocks'/p.name).exists(),p
  assert (A/'models/item'/p.name).exists(),p
  assert (D/'recipe'/p.name).exists(),p
+# Different results must not compete for an identical crafting layout.
+seen={}
+for p in (D/'recipe').glob('*.json'):
+ obj=json.loads(p.read_text())
+ if obj['type']=='minecraft:crafting_shaped':
+  rows=[[json.dumps(obj['key'][c],sort_keys=True) if c!=' ' else '' for c in row] for row in obj['pattern']]
+  while rows and not any(rows[0]):rows.pop(0)
+  while rows and not any(rows[-1]):rows.pop()
+  while rows and all(not row[0] for row in rows):rows=[row[1:] for row in rows]
+  while rows and all(not row[-1] for row in rows):rows=[row[:-1] for row in rows]
+  normal=tuple(tuple(row) for row in rows);mirror=tuple(tuple(reversed(row)) for row in rows)
+  signature=('shaped',min(normal,mirror))
+ else:signature=('shapeless',tuple(sorted(json.dumps(i,sort_keys=True) for i in obj['ingredients'])))
+ assert signature not in seen, ('conflicting crafting recipes',p,seen.get(signature))
+ seen[signature]=p
 ru=json.loads((A/'lang/ru_ru.json').read_text());en=json.loads((A/'lang/en_us.json').read_text());assert ru.keys()==en.keys()
 assert len(list((A/'blockstates').glob('*.json')))==47
 assert len(list((D/'recipe').glob('*.json')))==56

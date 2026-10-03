@@ -36,6 +36,10 @@ public class BocchiMod implements ModInitializer {
    for(String form:List.of("plush","chibi")) {
     String name=kind.id+"_"+form;
     MODELS.put(name,Registry.register(Registries.ITEM,id(name+"_model"),new ModelItem(name,new Item.Settings())));
+    for(String mood:List.of("happy","sleepy","surprised","squint")) {
+     String variant=name+"_"+mood;
+     MODELS.put(variant,Registry.register(Registries.ITEM,id(variant+"_model"),new ModelItem(variant,new Item.Settings())));
+    }
     EntityType<CompanionEntity> type=Registry.register(Registries.ENTITY_TYPE,id(name),EntityType.Builder.create(CompanionEntity::new,SpawnGroup.CREATURE).dimensions(0.65F,0.75F).maxTrackingRange(8).build(null));
     KINDS.put(type,kind); if(form.equals("plush")) PLUSH_TYPES.add(type);
     FabricDefaultAttributeRegistry.register(type,WolfEntity.createWolfAttributes());
@@ -59,6 +63,7 @@ public class BocchiMod implements ModInitializer {
   item("guitar",new GuitarItem());
   PolymerItemGroupUtils.registerPolymerItemGroup(id("little_stage"),PolymerItemGroupUtils.builder().displayName(Text.literal("BTR World")).icon(()->new ItemStack(FIGURINES.get(CharacterKind.NIJIKA))).entries((context,entries)->ITEMS.forEach(entries::add)).build());
   if (Boolean.getBoolean("bocchi.validateResources")) {
+   VisualValidation.run();
    if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 56) {
     throw new IllegalStateException("BTR World creative tab registration failed: " + ITEMS.size() + " player-facing entries");
    }

@@ -29,7 +29,23 @@
     "nijika_face": "bocchi:block/model/nijika_face",
     "ryo_face": "bocchi:block/model/ryo_face",
     "kita_face": "bocchi:block/model/kita_face",
-    "particle": "bocchi:block/model/pink"
+    "particle": "bocchi:block/model/pink",
+    "bocchi_face_happy": "bocchi:block/model/bocchi_face_happy",
+    "bocchi_face_sleepy": "bocchi:block/model/bocchi_face_sleepy",
+    "bocchi_face_surprised": "bocchi:block/model/bocchi_face_surprised",
+    "bocchi_face_squint": "bocchi:block/model/bocchi_face_squint",
+    "nijika_face_happy": "bocchi:block/model/nijika_face_happy",
+    "nijika_face_sleepy": "bocchi:block/model/nijika_face_sleepy",
+    "nijika_face_surprised": "bocchi:block/model/nijika_face_surprised",
+    "nijika_face_squint": "bocchi:block/model/nijika_face_squint",
+    "ryo_face_happy": "bocchi:block/model/ryo_face_happy",
+    "ryo_face_sleepy": "bocchi:block/model/ryo_face_sleepy",
+    "ryo_face_surprised": "bocchi:block/model/ryo_face_surprised",
+    "ryo_face_squint": "bocchi:block/model/ryo_face_squint",
+    "kita_face_happy": "bocchi:block/model/kita_face_happy",
+    "kita_face_sleepy": "bocchi:block/model/kita_face_sleepy",
+    "kita_face_surprised": "bocchi:block/model/kita_face_surprised",
+    "kita_face_squint": "bocchi:block/model/kita_face_squint"
   },
   "elements": [
     {

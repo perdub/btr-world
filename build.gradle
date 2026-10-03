@@ -2,8 +2,10 @@ plugins { id 'fabric-loom' version '1.7.4'; id 'maven-publish' }
 version = providers.gradleProperty('mod_version').get()
 group = 'dev.aliska'
 base { archivesName = 'btr-world' }
-repositories { maven { url = 'https://maven.nucleoid.xyz/' } }
+repositories { maven { url = 'https://maven.nucleoid.xyz/' }; maven { url = 'https://maven.blamejared.com/' } }
 dependencies {
+ if (project.hasProperty('jeiLocalJar')) { modCompileOnly files(project.property('jeiLocalJar')) }
+ else { modCompileOnly('mezz.jei:jei-1.21.1-fabric:19.21.0.247') { transitive = false } }
  minecraft 'com.mojang:minecraft:1.21.1'
  mappings 'net.fabricmc:yarn:1.21.1+build.3:v2'
  modImplementation 'net.fabricmc:fabric-loader:0.16.10'

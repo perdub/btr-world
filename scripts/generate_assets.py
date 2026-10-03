@@ -25,6 +25,24 @@ for kind in colors:
   d.line([(6,11),(8,12),(10,11)],fill=materials['outline'],width=1)
  d.rectangle((1,10,3,11),fill='#ee9f9f');d.rectangle((12,10,14,11),fill='#ee9f9f')
  im.save(AS/f'textures/block/model/{kind}_face.png')
+# Expressions reuse the same UV layout as the neutral face.
+for kind in colors:
+ for mood in ['happy','sleepy','surprised','squint']:
+  im=Image.new('RGB',(16,16),materials['skin']);d=ImageDraw.Draw(im)
+  ink=materials['outline']
+  if mood=='happy':
+   d.line([(2,8),(4,6),(6,8)],fill=ink,width=1);d.line([(10,8),(12,6),(14,8)],fill=ink,width=1)
+   d.arc((6,9,10,13),0,180,fill=ink,width=1)
+  elif mood=='sleepy':
+   d.line((2,8,5,8),fill=ink);d.line((10,8,13,8),fill=ink);d.rectangle((7,11,8,11),fill=ink)
+  elif mood=='squint':
+   d.line([(2,5),(5,7),(2,9)],fill=ink,width=2);d.line([(13,5),(10,7),(13,9)],fill=ink,width=2)
+   d.rectangle((6,11,9,12),fill=ink)
+  else:
+   d.ellipse((2,5,6,9),fill=materials['white'],outline=ink);d.ellipse((10,5,14,9),fill=materials['white'],outline=ink)
+   d.point((4,7),fill=ink);d.point((12,7),fill=ink);d.ellipse((7,11,9,13),outline=ink)
+  d.rectangle((1,10,3,11),fill='#ee9f9f');d.rectangle((12,10,14,11),fill='#ee9f9f')
+  im.save(AS/f'textures/block/model/{kind}_face_{mood}.png')
 def element(a,b,tex,north=None,rotation=None):
  faces={s:{'uv':[0,0,16,16],'texture':'#'+tex} for s in ['north','south','east','west','up','down']}
  if north: faces['north']['texture']='#'+north
@@ -33,6 +51,7 @@ def element(a,b,tex,north=None,rotation=None):
  return result
 textures={k:'bocchi:block/model/'+k for k in materials}
 textures.update({k+'_face':'bocchi:block/model/'+k+'_face' for k in colors}); textures['particle']='bocchi:block/model/pink'
+textures.update({k+'_face_'+m:'bocchi:block/model/'+k+'_face_'+m for k in colors for m in ['happy','sleepy','surprised','squint']})
 def model(elements,item=True):
  obj={'textures':textures,'elements':elements}
  if item: obj['display']={'gui':{'rotation':[18,145,0],'translation':[0,-3,0],'scale':[0.75,0.75,0.75]},'ground':{'translation':[0,0,0],'scale':[0.5,0.5,0.5]},'fixed':{'scale':[0.7,0.7,0.7]},'thirdperson_righthand':{'rotation':[0,0,0],'translation':[0,0,0],'scale':[0.5,0.5,0.5]},'firstperson_righthand':{'rotation':[0,-35,0],'translation':[0,-3,0],'scale':[0.7,0.7,0.7]}}
@@ -62,6 +81,19 @@ for kind in colors:
   ident=kind+'_'+form
   all_mob_models[ident]=model(e)
   js(AS/f'models/item/{ident}.json',model(e))
+  for mood in ['happy','sleepy','surprised','squint']:
+   variant=copy.deepcopy(e)
+   for el in variant:
+    for face in el['faces'].values():
+     if face['texture']=='#'+kind+'_face':face['texture']='#'+kind+'_face_'+mood
+   if mood=='surprised':
+    # Small raised whites and pupils add a physical anime surprise expression.
+    y0,y1,z=(11,13,1.8) if form=='plush' else (21,23,2.95)
+    for x in ([4,10] if form=='plush' else [5,9]):
+     variant.append(element([x,y0,z-.35],[x+1.5,y1,z],'white'))
+     variant.append(element([x+.5,y0+.6,z-.45],[x+1,y0+1.3,z-.35],'black'))
+   js(AS/f'models/item/{ident}_{mood}.json',model(variant))
+   lang('item.bocchi.'+ident+'_'+mood+'_model',names[kind]+' · '+mood,kind.title()+' '+mood+' model')
   js(AS/f'models/item/{ident}_summoner.json',{'parent':f'bocchi:item/{ident}'})
   lang('item.bocchi.'+ident+'_model',names[kind]+' · модель '+('тсум' if form=='plush' else 'чиби'),kind.title()+' '+form+' model')
   lang('item.bocchi.'+ident+'_summoner','Позвать: '+names[kind]+' · '+('тсум' if form=='plush' else 'чиби'),'Summon '+kind.title()+' '+form)
@@ -103,6 +135,16 @@ for kind,cs in colors.items():
    if finish=='tile':ingredients.append({'item':'minecraft:quartz'})
    if finish=='lamp':ingredients.append({'item':'minecraft:glowstone_dust'})
    js(DATA/f'recipe/{ident}.json',{'type':'minecraft:crafting_shapeless','ingredients':ingredients,'result':{'id':'bocchi:'+ident,'count':1}})
+# Corrugated cardboard front: tape, creases, handle and shipping marks.
+im=Image.new('RGB',(64,64),'#ba8861');d=ImageDraw.Draw(im)
+for y in range(0,64,4):d.line((0,y,63,y),fill='#b17f59')
+d.rectangle((0,0,63,63),outline='#80553c',width=2)
+d.rectangle((27,0,36,63),fill='#d8b786');d.line((31,0,31,63),fill='#aa845e')
+d.rectangle((7,19,22,25),fill='#674732');d.line((8,20,21,20),fill='#d5a376')
+d.rectangle((42,35,59,52),fill='#e5d3ac');d.line((44,39,56,39),fill='#725b43');d.line((44,43,53,43),fill='#725b43')
+for x in range(44,57,2):d.line((x,46,x,50),fill='#725b43')
+d.line([(2,48),(9,51),(4,59)],fill='#976a48');d.line([(58,2),(54,11),(61,15)],fill='#976a48')
+im.save(AS/'textures/block/model/cardboard_detail.png');textures['cardboard_detail']='bocchi:block/model/cardboard_detail'
 # Stage props, constructed from low-poly cuboids.
 props={
 'bocchi_box':[element([1,0,1],[15,9,15],'cardboard'),element([1,8,0],[15,9,3],'carddark'),element([1,8,13],[15,9,16],'carddark'),element([6,3,.95],[10,5,1],'carddark')],
@@ -113,6 +155,41 @@ props={
 'guitar_case':[element([4,0,4],[12,2,14],'black'),element([6,0,1],[10,2,6],'black'),element([11,1,8],[13,2,10],'metal')],
 'starry_sign':[element([1,0,7],[15,10,9],'black')]
 }
+# Reinforced box panels, folded lips, taped seam and physical edge creases.
+box=props['bocchi_box'];box[0]['faces']['north']['texture']='#cardboard_detail';box[0]['faces']['south']['texture']='#cardboard_detail'
+box += [element([1,0,.9],[1.3,9,15.1],'carddark'),element([14.7,0,.9],[15,9,15.1],'carddark'),
+        element([1,0,1],[15,.3,15],'carddark'),element([7.2,9,3],[8.8,9.12,13],'wood'),
+        element([1,8.5,3],[2,9.1,13],'carddark'),element([14,8.5,3],[15,9.1,13],'carddark')]
+# Stepped octagonal drums: shells, contrasting rims, skins, lugs and a supported rack.
+def drum(cx,cy,cz,r,height,axis='y'):
+ parts=[]
+ def piece(a,b,tex):
+  if axis=='z':a=[a[0],cy+a[2]-cz,cz+a[1]-cy];b=[b[0],cy+b[2]-cz,cz+b[1]-cy]
+  parts.append(element(a,b,tex))
+ for dy,h,tex in [(0,height,'red'),(-.15,.3,'metal'),(height-.15,.3,'metal'),(height+.15,.1,'white')]:
+  for strip in range(8):
+   x0=-r+strip*r/4;x1=x0+r/4
+   half=min(r,r*1.41421356-max(abs(x0),abs(x1)))
+   piece([cx+x0,cy+dy,cz-half],[cx+x1,cy+dy+h,cz+half],tex)
+ for dx,dz in [(-r,0),(r,0),(0,-r),(0,r)]:
+  piece([cx+dx-.15,cy+.3,cz+dz-.15],[cx+dx+.15,cy+height-.3,cz+dz+.15],'metal')
+ return parts
+drums=drum(8,3.7,4.2,3.2,3,'z')
+drums+=drum(4.3,6.7,8.2,2.2,2.2)+drum(10,7.5,9,2.1,2.1)+drum(13,2.5,12,2.4,4)
+drums+=drum(3,4.2,4,1.9,1)
+for x,z,top in [(1.6,11,12),(13.8,4,10.8),(3,4,4.2),(13,12,2.5)]:
+ drums.append(element([x-.14,.3,z-.14],[x+.14,top,z+.14],'metal'))
+ for dx,dz in [(-1,0),(1,0),(0,1)]:
+  drums.append(element([min(x,x+dx),0,min(z,z+dz)],[max(x,x+dx)+.18,.3,max(z,z+dz)+.18],'metal'))
+ if top>10:
+  drums.append(element([x-1.9,top,z-1.5],[x+1.9,top+.16,z+1.5],'yellow'))
+  drums.append(element([x-.6,top+.16,z-.6],[x+.6,top+.45,z+.6],'yellow'))
+# Bass pedal, rack, throne, drumsticks resting across the snare.
+drums += [element([7,0,1],[9,.25,3],'metal'),element([7.5,.25,1.5],[8.5,.5,3],'black'),
+          element([7.85,3,8],[8.15,9.5,8.3],'metal'),element([4,7.5,8],[11,7.8,8.3],'metal'),
+          element([7.8,0,13],[8.2,3.7,13.4],'metal'),element([6.5,3.7,12],[9.5,4.3,14.5],'black'),
+          element([1.5,5.4,3.3],[4.5,5.55,3.45],'wood'),element([2.6,5.4,2.5],[2.75,5.55,5.5],'wood')]
+props['drum_kit']=drums
 # STARRY plaque: stepped bevel silhouette, raised rim bulbs and neon lettering.
 # Authored procedural Minecraft asset; reference image is not copied into the pack.
 W,H=256,192
