@@ -41,7 +41,7 @@ public class BocchiMod implements ModInitializer {
      String variant=name+"_"+mood;
      MODELS.put(variant,Registry.register(Registries.ITEM,id(variant+"_model"),new ModelItem(variant,new Item.Settings())));
     }
-    EntityType<CompanionEntity> type=Registry.register(Registries.ENTITY_TYPE,id(name),EntityType.Builder.create(CompanionEntity::new,SpawnGroup.CREATURE).dimensions(0.65F,0.75F).maxTrackingRange(8).build(null));
+    EntityType<CompanionEntity> type=Registry.register(Registries.ENTITY_TYPE,id(name),EntityType.Builder.create(CompanionEntity::new,SpawnGroup.CREATURE).dimensions(0.45F,0.65F).maxTrackingRange(8).build(null));
     KINDS.put(type,kind); if(form.equals("plush")) PLUSH_TYPES.add(type);
     FabricDefaultAttributeRegistry.register(type,WolfEntity.createWolfAttributes());
     PolymerEntityUtils.registerType(type);
@@ -61,6 +61,13 @@ public class BocchiMod implements ModInitializer {
   for(String name:List.of("bocchi_box","amplifier","speaker","drum_kit","microphone","guitar_case","starry_sign")) {
    DecorationBlock block=new DecorationBlock(name); Registry.register(Registries.BLOCK,id(name),block); BLOCKS.put(name,block); item(name,new PaletteItem(name,block));
   }
+  for(String name:List.of("jimihen_plush","mini_slime_plush","guitar_stand")) {
+   DecorationBlock block=new DecorationBlock(name);Registry.register(Registries.BLOCK,id(name),block);BLOCKS.put(name,block);item(name,new PaletteItem(name,block));
+  }
+  for(String name:List.of("kessoku_poster","indie_poster","festival_poster","starry_neon_star","fairy_lights")) {
+   WallDecorBlock block=new WallDecorBlock(name,name.equals("starry_neon_star")?9:name.equals("fairy_lights")?6:0,name.equals("fairy_lights"));
+   Registry.register(Registries.BLOCK,id(name),block);BLOCKS.put(name,block);item(name,new PaletteItem(name,block));
+  }
   item("guitar",new GuitarItem());
   item("rehearsal_bell",new RehearsalBellItem());
   item("mango_box_hat",new DecorativeHatItem("mango_box_hat"));
@@ -73,7 +80,7 @@ public class BocchiMod implements ModInitializer {
   PolymerItemGroupUtils.registerPolymerItemGroup(id("little_stage"),PolymerItemGroupUtils.builder().displayName(Text.literal("BTR World")).icon(()->new ItemStack(FIGURINES.get(CharacterKind.NIJIKA))).entries((context,entries)->ITEMS.forEach(entries::add)).build());
   if (Boolean.getBoolean("bocchi.validateResources")) {
    VisualValidation.run();
-   if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 64) {
+   if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 72) {
     throw new IllegalStateException("BTR World creative tab registration failed: " + ITEMS.size() + " player-facing entries");
    }
    org.slf4j.LoggerFactory.getLogger("bocchi").info("Creative tab BTR World registered with {} player-facing entries.", ITEMS.size());
@@ -81,7 +88,7 @@ public class BocchiMod implements ModInitializer {
    if(!built) throw new IllegalStateException("Bocchi resource pack validation failed");
    org.slf4j.LoggerFactory.getLogger("bocchi").info("Resource pack validation passed.");
   }
-  org.slf4j.LoggerFactory.getLogger("bocchi").info("Little Stage registered: 8 companions, 47 blocks, 64 recipes.");
+  org.slf4j.LoggerFactory.getLogger("bocchi").info("Little Stage registered: 8 companions, 55 blocks, 72 recipes.");
   CommandRegistrationCallback.EVENT.register((dispatcher,access,env)-> {
    dispatcher.register(CommandManager.literal("bocchi").then(CommandManager.literal("stage").requires(source->source.hasPermissionLevel(2)).executes(context-> {
     var player=context.getSource().getPlayerOrThrow(); ServerWorld world=player.getServerWorld();

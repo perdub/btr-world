@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "bocchi:block/fairy_lights",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "bocchi:block/fairy_lights",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "bocchi:block/fairy_lights",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "bocchi:block/fairy_lights",
+      "y": 270
+    },
+    "facing=down": {
+      "model": "bocchi:block/fairy_lights",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "bocchi:block/fairy_lights",
+      "x": 270
+    }
+  }
+}

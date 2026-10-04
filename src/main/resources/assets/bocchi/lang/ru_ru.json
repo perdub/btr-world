@@ -131,5 +131,13 @@
   "advancements.bocchi.power_chord.description": "Оттолкни враждебного моба гитарой.",
   "advancements.bocchi.statue.title": "Больше сцены",
   "advancements.bocchi.statue.description": "Найди большую статую одной из героинь.",
-  "item.bocchi.rehearsal_bell": "Колокольчик репетиции"
+  "item.bocchi.rehearsal_bell": "Колокольчик репетиции",
+  "block.bocchi.jimihen_plush": "Плюшевый Дзимихен",
+  "block.bocchi.mini_slime_plush": "Плюшевый мини-слизень",
+  "block.bocchi.kessoku_poster": "Постер Kessoku Band · 1×1",
+  "block.bocchi.indie_poster": "Инди-афиша · 1×2",
+  "block.bocchi.festival_poster": "Фестивальная афиша · 2×1",
+  "block.bocchi.starry_neon_star": "Неоновая звезда STARRY",
+  "block.bocchi.fairy_lights": "Тонкая гирлянда",
+  "block.bocchi.guitar_stand": "Гитара на стойке"
 }

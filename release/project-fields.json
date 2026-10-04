@@ -1,0 +1,15 @@
+{
+  "title": "BTR World",
+  "suggested_slug": "btr-world",
+  "project_type": "mod",
+  "summary_en": "Tame tiny Bocchi the Rock! companions, build a cozy rehearsal room and enjoy original note-block performances. Fabric + Polymer.",
+  "summary_ru": "Приручаемые чиби по «Одинокому рокеру», уютный декор и репетиции с нотными мелодиями. Fabric + Polymer.",
+  "categories": ["decoration", "mobs", "worldgen"],
+  "license": "MIT",
+  "environment": "server_only_client_optional",
+  "target_visibility": "unlisted",
+  "disclosure_checklist": ["AI-generated code", "AI-generated assets", "AI-generated text"],
+  "description_en_file": "description-en.md",
+  "description_ru_file": "description-ru.md",
+  "notes": "Setup worksheet, not a CreateProject API payload. Choose the actual project slug and fill real source/issue URLs. No runtime generative AI. Moderation may still reject this project."
+}

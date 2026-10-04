@@ -43,9 +43,9 @@ for p in (D/'recipe').glob('*.json'):
  assert signature not in seen, ('conflicting crafting recipes',p,seen.get(signature))
  seen[signature]=p
 ru=json.loads((A/'lang/ru_ru.json').read_text());en=json.loads((A/'lang/en_us.json').read_text());assert ru.keys()==en.keys();be=json.loads((A/'lang/be_by.json').read_text());assert be.keys()==ru.keys()
-assert len(list((A/'blockstates').glob('*.json')))==47
-assert len(list((D/'recipe').glob('*.json')))==64
-print(f'PASS: {count} JSON files; texture/model references and atlas coverage, geometry, 47 block drops and 64 recipes.')
+assert len(list((A/'blockstates').glob('*.json')))==55
+assert len(list((D/'recipe').glob('*.json')))==72
+print(f'PASS: {count} JSON files; texture/model references and atlas coverage, geometry, 55 block drops and 72 recipes.')
 from structure_nbt import read
 for path in (D/'structure/statues').glob('*.nbt'):
  nbt=read(path);assert nbt['size']==[11,18,11],path

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "bocchi:block/kessoku_poster",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "bocchi:block/kessoku_poster",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "bocchi:block/kessoku_poster",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "bocchi:block/kessoku_poster",
+      "y": 270
+    },
+    "facing=down": {
+      "model": "bocchi:block/kessoku_poster",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "bocchi:block/kessoku_poster",
+      "x": 270
+    }
+  }
+}

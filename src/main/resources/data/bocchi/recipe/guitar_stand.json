@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "bocchi:guitar"
+    },
+    {
+      "item": "minecraft:stick"
+    },
+    {
+      "item": "minecraft:oak_slab"
+    }
+  ],
+  "result": {
+    "id": "bocchi:guitar_stand",
+    "count": 1
+  }
+}

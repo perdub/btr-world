@@ -3,3 +3,8 @@ build/
 run/
 *-log.txt
 release-assets/
+
+__pycache__/
+*.pyc
+.env
+.env.*

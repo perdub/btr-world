@@ -275,3 +275,7 @@ print('Generated',len(ru),'translations;',len(list((DATA/'recipe').glob('*.json'
 # Keep the expansion deterministic when regenerating base assets.
 import runpy
 runpy.run_path(str(Path(__file__).with_name("generate_expansion.py")))
+
+runpy.run_path(str(Path(__file__).with_name("generate_room_decor.py")))
+
+runpy.run_path(str(Path(__file__).with_name("generate_craft_guide.py")))

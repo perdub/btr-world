@@ -131,5 +131,13 @@
   "advancements.bocchi.power_chord.description": "Push a hostile mob away with the guitar.",
   "advancements.bocchi.statue.title": "Larger Than the Stage",
   "advancements.bocchi.statue.description": "Discover a giant heroine statue.",
-  "item.bocchi.rehearsal_bell": "Rehearsal Bell"
+  "item.bocchi.rehearsal_bell": "Rehearsal Bell",
+  "block.bocchi.jimihen_plush": "Jimihen plush",
+  "block.bocchi.mini_slime_plush": "Mini slime plush",
+  "block.bocchi.kessoku_poster": "Kessoku Band poster · 1×1",
+  "block.bocchi.indie_poster": "Indie poster · 1×2",
+  "block.bocchi.festival_poster": "Festival poster · 2×1",
+  "block.bocchi.starry_neon_star": "STARRY neon star",
+  "block.bocchi.fairy_lights": "Fairy lights",
+  "block.bocchi.guitar_stand": "Guitar stand"
 }

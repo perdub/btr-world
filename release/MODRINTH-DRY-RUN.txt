@@ -1,0 +1,39 @@
+{
+  "name": "BTR World 0.4.0",
+  "version_number": "0.4.0",
+  "project_id": "<set MODRINTH_PROJECT_ID>",
+  "changelog": "## BTR World 0.4.0 beta\n\n- Instrument performances now last 90–150 seconds instead of six seconds.\n- Added longer original note-block phrases with verse/response/refrain variations.\n- Nijika plays percussion, Kita uses flute tones, Bocchi guitar and Ryo bass.\n- Performances stop when the companion is told to wait, starts breeding, panics, or the owner leaves.\n- Includes all previous content: eight tameable companions, 55 blocks, 72 recipes, costumes, plush toys, posters, lights, statues and advancements.\n- Prepared GitHub and Modrinth CI/CD, complete crafting guide and release documentation.\n\nThis is a beta. Gameplay and visuals require testing on Minecraft Java 1.21.1.\nNo anime soundtrack recordings or song transcriptions are included. Performances use original phrases and vanilla Minecraft sounds.\nCode, assets and text were developed with substantial generative AI assistance.\n",
+  "version_type": "beta",
+  "status": "unlisted",
+  "environment": "server_only_client_optional",
+  "game_versions": [
+    "1.21.1"
+  ],
+  "loaders": [
+    "fabric"
+  ],
+  "featured": false,
+  "dependencies": [
+    {
+      "project_id": "fabric-api",
+      "dependency_type": "required"
+    },
+    {
+      "project_id": "polymer",
+      "dependency_type": "required"
+    },
+    {
+      "project_id": "jei",
+      "dependency_type": "optional"
+    }
+  ],
+  "file_parts": [
+    "mod",
+    "sources"
+  ],
+  "primary_file": "mod",
+  "file_types": {
+    "sources": "sources-jar"
+  }
+}
+Dry-run: no network calls, no uploads.

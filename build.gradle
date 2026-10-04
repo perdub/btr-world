@@ -24,3 +24,15 @@ tasks.register('geneticsCheck', JavaExec) {
  mainClass = 'dev.aliska.bocchi.GeneticsCheck'
 }
 check.dependsOn tasks.named('geneticsCheck')
+
+tasks.register('musicCheck', JavaExec) {
+ dependsOn testClasses
+ classpath = sourceSets.test.runtimeClasspath
+ mainClass = 'dev.aliska.bocchi.MusicCheck'
+}
+check.dependsOn tasks.named('musicCheck')
+
+tasks.withType(AbstractArchiveTask).configureEach {
+ preserveFileTimestamps = false
+ reproducibleFileOrder = true
+}

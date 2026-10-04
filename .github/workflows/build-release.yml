@@ -20,8 +20,8 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -34,6 +34,8 @@ jobs:
           BASE_VERSION="$(sed -n 's/^mod_version=//p' gradle.properties)"
           [[ "$BASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           echo "version=${BASE_VERSION}+build.${GITHUB_RUN_NUMBER}.${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+      - name: Test release uploader
+        run: python3 -m unittest discover -s tests -v
       - name: Validate authored resources
         run: python3 scripts/validate_assets.py
       - name: Build mod
@@ -42,7 +44,7 @@ jobs:
         run: bash ./gradlew --no-daemon build "-Pmod_version=$MOD_VERSION"
       - name: Prepare assets with stable names
         run: python3 scripts/prepare_release.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mod-release-assets
           path: release-assets/*
@@ -59,7 +61,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: mod-release-assets
           path: release-assets
@@ -87,7 +89,7 @@ jobs:
                 f"Коммит: `{os.environ['GITHUB_SHA']}`.\n\n"
                 "Нужны Java 21, Fabric, Fabric API и Polymer bundled 0.9.18+1.21.1.\n\n"
                 f"Постоянная ссылка: {base}/releases/latest/download/btr-world.jar\n\n"
-                "Это автоматическая сборка прототипа; игровое поведение не проверяется CI.\n")
+                "Автоматическая beta-сборка. Репетиции 90–150 секунд; оригинальные нотные мелодии. Игровое поведение не проверяется CI.\n")
           Path('release-notes.md').write_text(text, encoding='utf-8')
           PY
           if gh release view "$TAG" --json isDraft > existing-release.json 2>/dev/null; then
@@ -105,3 +107,38 @@ jobs:
             --title "BTR World — мир «Одинокого рокера» $MOD_VERSION" --notes-file release-notes.md
           echo "### Скачать последнюю сборку" >> "$GITHUB_STEP_SUMMARY"
           echo "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/btr-world.jar" >> "$GITHUB_STEP_SUMMARY"
+
+  publish-modrinth:
+    needs: build
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      vars.MODRINTH_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v7
+        with:
+          name: mod-release-assets
+          path: release-assets
+      - name: Check current default-branch commit
+        id: head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          BRANCH_SHA="$(gh api "repos/$GH_REPO/git/ref/heads/$DEFAULT_BRANCH" --jq '.object.sha')"
+          if [[ "$BRANCH_SHA" == "$GITHUB_SHA" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Newer commit found; Modrinth publication skipped."
+          fi
+      - name: Publish Modrinth beta (unlisted)
+        if: steps.head.outputs.current == 'true'
+        env:
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 scripts/publish_modrinth.py

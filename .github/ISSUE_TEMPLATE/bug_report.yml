@@ -1,0 +1,26 @@
+name: Bug report / Ошибка
+description: Report a gameplay, model, recipe or release problem.
+title: "[Bug] "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: BTR World version
+      description: Include the full version from the server log.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps and expected behavior / Шаги и ожидаемое поведение
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Minecraft, Fabric, Polymer and Fabric API versions
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs and screenshots
+      description: Remove tokens, private IP addresses and other sensitive data before attaching.
