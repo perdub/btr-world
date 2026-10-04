@@ -1,13 +1,26 @@
 {
   "name": "BTR World",
   "version_type": "beta",
-  "status": "unlisted",
+  "status": "listed",
   "environment": "server_only_client_optional",
-  "game_versions": ["1.21.1"],
-  "loaders": ["fabric"],
+  "game_versions": [
+    "1.21.1"
+  ],
+  "loaders": [
+    "fabric"
+  ],
   "dependencies": [
-    {"slug": "fabric-api", "dependency_type": "required"},
-    {"slug": "polymer", "dependency_type": "required"},
-    {"slug": "jei", "dependency_type": "optional"}
+    {
+      "slug": "fabric-api",
+      "dependency_type": "required"
+    },
+    {
+      "slug": "polymer",
+      "dependency_type": "required"
+    },
+    {
+      "slug": "jei",
+      "dependency_type": "optional"
+    }
   ]
 }

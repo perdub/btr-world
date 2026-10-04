@@ -34,7 +34,7 @@ jobs:
           BASE_VERSION="$(sed -n 's/^mod_version=//p' gradle.properties)"
           [[ "$BASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           echo "version=${BASE_VERSION}+build.${GITHUB_RUN_NUMBER}.${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
-      - name: Test release uploader
+      - name: Test release verification
         run: python3 -m unittest discover -s tests -v
       - name: Validate authored resources
         run: python3 scripts/validate_assets.py
@@ -136,9 +136,36 @@ jobs:
           else
             echo "Newer commit found; Modrinth publication skipped."
           fi
-      - name: Publish Modrinth beta (unlisted)
+      - name: Prepare and check Modrinth publication
+        id: modrinth
         if: steps.head.outputs.current == 'true'
         env:
           MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-        run: python3 scripts/publish_modrinth.py
+        run: python3 scripts/modrinth_release.py prepare
+      - name: Upload using Modrinth Publish
+        if: steps.head.outputs.current == 'true' && steps.modrinth.outputs.exists != 'true'
+        uses: cloudnode-pro/modrinth-publish@v2.5.2
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project: ${{ steps.modrinth.outputs.project }}
+          version: ${{ steps.modrinth.outputs.version }}
+          name: ${{ steps.modrinth.outputs.name }}
+          changelog: ${{ steps.modrinth.outputs.changelog }}
+          channel: beta
+          status: listed
+          environment: server_only_client_optional
+          loaders: fabric
+          game-versions: 1.21.1
+          files: |
+            release-assets/btr-world.jar
+            release-assets/btr-world-sources.jar
+          primary-file: btr-world.jar
+          file-types: btr-world-sources.jar=sources-jar
+          dependencies: ${{ steps.modrinth.outputs.dependencies }}
+      - name: Read back version and verify uploaded files
+        if: steps.head.outputs.current == 'true'
+        env:
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: python3 scripts/modrinth_release.py verify

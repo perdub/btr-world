@@ -6,8 +6,8 @@
 - `description-en.md` и `description-ru.md`: тексты страницы.
 - `project-fields.json`: заголовок, краткое описание, категории, лицензия, окружение и раскрытия.
 - `CHANGELOG.md`: описание версии.
-- GitHub workflow: проверки push/PR, сборка Java 21, GitHub Releases с постоянным именем JAR; отдельный Modrinth uploader.
-- Шесть offline-тестов uploader: dry-run, multipart, дубликаты, конфликт версии, потерянный ответ и запрет случайной публичной отправки.
+- GitHub workflow: проверки push/PR, сборка Java 21, GitHub Releases с постоянным именем JAR; готовый Action cloudnode-pro/modrinth-publish@v2.5.2.
+- Шесть offline-тестов readback-проверки: правильная запись, другой проект, другие файлы, скрытая версия, неверный основной файл и тип исходников.
 - `internal-previews`: существующие программные рендеры моделей для внутреннего планирования. Они не являются Minecraft-скриншотами и не предназначены для загрузки на Modrinth.
 - `gallery/README.md`: кадры и подписи для настоящих скриншотов.
 
@@ -45,7 +45,7 @@ https://github.com/<OWNER>/<REPOSITORY>/releases/latest/download/btr-world.jar
 
 Обязательные зависимости версий: Fabric API и Polymer. JEI — optional. Minecraft: 1.21.1, loader: Fabric. Для первой версии используй **beta**.
 
-Включи раскрытия **AI-generated code**, **AI-generated assets**, **AI-generated text**. Прочитай правила с учётом текущего содержания. Настрой unlisted-доступность, если она доступна/разрешена для проекта; при необходимости обратись к модерации. Проект в состоянии approved/public не будет автоматически получать файлы от текущего uploader.
+Включи раскрытия **AI-generated code**, **AI-generated assets**, **AI-generated text**. Прочитай правила с учётом текущего содержания. Настрой unlisted-доступность, если она доступна/разрешена для проекта; при необходимости обратись к модерации. Проект в состоянии approved/public не будет автоматически получать файлы от текущего workflow.
 
 ## 3. Настрой Actions
 
@@ -58,7 +58,7 @@ https://github.com/<OWNER>/<REPOSITORY>/releases/latest/download/btr-world.jar
 
 Не вставляй токен в чат, git, README или аргументы команды. Без `MODRINTH_PROJECT_ID` Modrinth-job пропускается; GitHub Releases продолжает работать. Если ID задан, а секрет отсутствует, uploader завершится понятной ошибкой.
 
-Uploader загружает production `btr-world.jar` как основной файл и sources JAR как дополнительный `sources-jar`. Зависимости разрешаются по реальным IDs Modrinth. Description, icon и gallery не перезаписываются на каждом релизе: они заполняются отдельно.
+Готовый Action загружает production `btr-world.jar` как основной файл и sources JAR как дополнительный `sources-jar`. Зависимости разрешаются по реальным IDs Modrinth. Description, icon и gallery не перезаписываются на каждом релизе: они заполняются отдельно.
 
 ## 4. Выпуски
 
@@ -66,9 +66,9 @@ Uploader загружает production `btr-world.jar` как основной �
 2. Выполни проверки и игровой smoke-test ниже.
 3. Push в default branch.
 4. Actions создаст уникальную версию вида `0.4.0+build.<run_number>.<commit>`.
-5. GitHub Releases получит новый latest со стабильными именами. Modrinth получит **unlisted beta**, если настроены ID и token и проект разрешён.
+5. GitHub Releases получит новый latest со стабильными именами. Modrinth получит **listed beta внутри unlisted-проекта**, если настроены ID и token и проект разрешён.
 
-Повтор запуска одного workflow не создаёт дубликат на Modrinth: сверяются version_number и SHA512 обоих файлов. Если version_number существует с другими файлами, загрузка останавливается. Потерянный ответ после POST перепроверяется. Workflow старого коммита проверяет актуальный HEAD перед публикацией.
+Повтор запуска одного workflow не создаёт дубликат на Modrinth: сверяются version_number и SHA512 обоих файлов. Если version_number существует с другими файлами, загрузка останавливается. Если ответ Action потерян после загрузки, повторный запуск сверит уже созданную версию перед новой попыткой. Workflow старого коммита проверяет актуальный HEAD перед публикацией.
 
 Локальная подготовка без публикации:
 
@@ -77,10 +77,10 @@ bash ./gradlew build
 python3 scripts/validate_assets.py
 python3 -m unittest discover -s tests -v
 python3 scripts/prepare_release.py
-python3 scripts/publish_modrinth.py --dry-run
+python3 -m py_compile scripts/modrinth_release.py
 ```
 
-Dry-run ничего не отправляет и не требует token. Без настроенного реального проекта/репозитория внешняя публикация не выполнена.
+Проверка синтаксиса ничего не отправляет и не требует token. Без настроенного реального проекта/репозитория внешняя публикация не выполнена.
 
 ## 5. Игровой smoke-test перед доступностью для других
 
@@ -95,3 +95,19 @@ CI проверяет компиляцию, генетику и ресурсы, 
 Собственная MIT-лицензия не передаёт права на франшизу. Не заявляй официальный статус.
 
 Источник о различии композиции и звукозаписи: https://www.copyright.gov/register/pa-sr.html . Для конкретного использования музыки требуется проверка применимых прав и разрешений; здесь не заявляется универсальная лицензия на песни.
+
+## Исправление загрузчика от 4 октября 2026
+
+Самописный multipart uploader удалён. Загрузку выполняет готовый `cloudnode-pro/modrinth-publish@v2.5.2`.
+
+Статус **проекта** остаётся draft/unlisted. Статус **версии** — listed, чтобы версия была в списке проекта. Это не переводит draft-проект в публичный и не отправляет его на модерацию.
+
+`scripts/modrinth_release.py` выполняет только GET-запросы: разрешает ID проекта и зависимостей, проверяет совпадающие версии перед повторной загрузкой и подтверждает результат после Action. Проверка сверяет project_id, version_number, статус, SHA512 и имена двух JAR, primary file, sources-jar, Minecraft и Fabric. Несовпадение делает job красным. В Summary печатаются реальные ID и ссылка.
+
+Для чтения ранее загруженной записи в окружении с секретом Actions:
+
+```bash
+python3 scripts/modrinth_release.py inspect --version-id C1jS82bQ
+```
+
+Это не меняет существующую версию. Старый unlisted-релиз не исправляется автоматически: следующий push создаст новую listed-версию. Секрет MODRINTH_TOKEN и переменная MODRINTH_PROJECT_ID используются прежние; нужны VERSION_CREATE, VERSION_READ и PROJECT_READ для закрытых записей.
