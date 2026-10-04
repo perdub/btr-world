@@ -157,9 +157,7 @@ jobs:
           environment: server_only_client_optional
           loaders: fabric
           game-versions: 1.21.1
-          files: |
-            release-assets/btr-world.jar
-            release-assets/btr-world-sources.jar
+          files: '["release-assets/btr-world.jar", "release-assets/btr-world-sources.jar"]'
           primary-file: btr-world.jar
           file-types: btr-world-sources.jar=sources-jar
           dependencies: ${{ steps.modrinth.outputs.dependencies }}
