@@ -29,10 +29,11 @@ public class DecorationBlock extends Block implements PolymerTexturedBlock {
  @Override protected ActionResult onUse(BlockState state,World world,BlockPos pos,PlayerEntity player,BlockHitResult hit) {
   if(world.isClient) return ActionResult.SUCCESS;
   if(id.equals("bocchi_box")) {
-   if(player.getItemCooldownManager().isCoolingDown(asItem())) return ActionResult.PASS;
+   if (!BoxSeats.sit((ServerWorld) world, pos, player)) return ActionResult.PASS;
+   if (!player.getItemCooldownManager().isCoolingDown(asItem())) {
    player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY,200,0,false,false,true));
    player.getItemCooldownManager().set(asItem(),400);
-   player.sendMessage(Text.literal("Коробка Боччи: десять секунд, чтобы собраться с мыслями."),true);
+   }
    return ActionResult.SUCCESS;
   }
   if(id.equals("drum_kit")) {

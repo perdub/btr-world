@@ -42,7 +42,22 @@ for p in (D/'recipe').glob('*.json'):
  else:signature=('shapeless',tuple(sorted(json.dumps(i,sort_keys=True) for i in obj['ingredients'])))
  assert signature not in seen, ('conflicting crafting recipes',p,seen.get(signature))
  seen[signature]=p
-ru=json.loads((A/'lang/ru_ru.json').read_text());en=json.loads((A/'lang/en_us.json').read_text());assert ru.keys()==en.keys()
+ru=json.loads((A/'lang/ru_ru.json').read_text());en=json.loads((A/'lang/en_us.json').read_text());assert ru.keys()==en.keys();be=json.loads((A/'lang/be_by.json').read_text());assert be.keys()==ru.keys()
 assert len(list((A/'blockstates').glob('*.json')))==47
-assert len(list((D/'recipe').glob('*.json')))==56
-print(f'PASS: {count} JSON files; texture/model references and atlas coverage, geometry, 47 block drops and 56 recipes.')
+assert len(list((D/'recipe').glob('*.json')))==64
+print(f'PASS: {count} JSON files; texture/model references and atlas coverage, geometry, 47 block drops and 64 recipes.')
+from structure_nbt import read
+for path in (D/'structure/statues').glob('*.nbt'):
+ nbt=read(path);assert nbt['size']==[11,18,11],path
+ positions=set()
+ for block in nbt['blocks']:
+  pos=tuple(block['pos']);assert pos not in positions;positions.add(pos)
+  assert all(0<=v<limit for v,limit in zip(pos,nbt['size'])),path
+  assert 0<=block['state']<len(nbt['palette']),path
+ assert len(positions)>500,path
+achievements=list((D/'advancement').glob('*.json'));assert len(achievements)==10
+for path in achievements:
+ obj=json.loads(path.read_text());assert obj['display']['show_toast'] is True
+ for component in ('title','description'):
+  key=obj['display'][component]['translate'];assert key in ru and key in en and key in be
+print('PASS: 4 statue NBT templates, 10 achievements, RU/BE/EN and normal toasts.')

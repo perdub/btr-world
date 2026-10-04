@@ -16,6 +16,9 @@ final class VisualValidation {
  static void run() {
   if(BocchiMod.MODELS.size()!=40) throw new IllegalStateException("Expected 8 neutral and 32 expression models");
   var world=PolymerCommonUtils.getFakeWorld();
+  var seat=new net.minecraft.entity.decoration.ArmorStandEntity(net.minecraft.entity.EntityType.ARMOR_STAND,world);
+  BoxSeats.configure(seat);
+  if (!seat.isMarker() || !seat.isInvisible() || !seat.hasNoGravity() || !seat.isInvulnerable()) throw new IllegalStateException("Box seat configuration failed");
   var display=new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY,world);
   var wolf=new WolfEntity(EntityType.WOLF,world);
   float offset=(float)(wolf.getPassengerRidingPos(display).y-wolf.getY());
@@ -29,6 +32,27 @@ final class VisualValidation {
   var nbt=new NbtCompound();display.writeNbt(nbt);
   float saved=nbt.getCompound("transformation").getList("translation",NbtElement.FLOAT_TYPE).getFloat(1);
   if(Math.abs(offset+saved)>0.00001) throw new IllegalStateException("Mount correction is not synchronized/saved");
+  var type=BocchiMod.KINDS.keySet().stream().filter(t->BocchiMod.KINDS.get(t)==CharacterKind.BOCCHI).findFirst().orElseThrow();
+  var probe=(CompanionEntity)type.create(world);
+  var familyNbt=new NbtCompound();probe.writeCustomDataToNbt(familyNbt);
+  familyNbt.putIntArray("BtrGenes",new int[]{1,0,3});familyNbt.putInt("BtrGrowth",1200);familyNbt.putInt("BtrBreedCooldown",4000);
+  probe.readCustomDataFromNbt(familyNbt);
+  var savedFamily=new NbtCompound();probe.writeCustomDataToNbt(savedFamily);
+  if(!java.util.Arrays.equals(savedFamily.getIntArray("BtrGenes"),new int[]{1,0,3}) || savedFamily.getInt("BtrGrowth")!=1200 || savedFamily.getInt("BtrBreedCooldown")!=4000) throw new IllegalStateException("Family data did not survive NBT round trip");
+  try {
+   var mod=net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("bocchi").orElseThrow();
+   for(var kind:CharacterKind.values()) {
+    var path=mod.findPath("data/bocchi/structure/statues/"+kind.id+".nbt").orElseThrow();
+    var templateNbt=net.minecraft.nbt.NbtIo.readCompressed(path,net.minecraft.nbt.NbtSizeTracker.ofUnlimitedBytes());
+    for(var tag:templateNbt.getList("palette",NbtElement.COMPOUND_TYPE)) {
+     var name=net.minecraft.util.Identifier.of(((NbtCompound)tag).getString("Name"));
+     if(!net.minecraft.registry.Registries.BLOCK.containsId(name)) throw new IllegalStateException("Unknown statue block "+name);
+    }
+    var template=new net.minecraft.structure.StructureTemplate();
+    template.readNbt(net.minecraft.registry.Registries.BLOCK.getReadOnlyWrapper(),templateNbt);
+    if(template.getSize().getY()!=18 || templateNbt.getList("blocks",NbtElement.COMPOUND_TYPE).size()<500) throw new IllegalStateException("Invalid statue template "+kind.id);
+   }
+  } catch(Exception e) { throw new IllegalStateException("Statue validation failed",e); }
   org.slf4j.LoggerFactory.getLogger("bocchi").info("Visual validation passed: 40 models, display invokers, mount correction {} blocks.",offset);
  }
 }

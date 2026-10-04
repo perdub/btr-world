@@ -147,7 +147,7 @@ d.line([(2,48),(9,51),(4,59)],fill='#976a48');d.line([(58,2),(54,11),(61,15)],fi
 im.save(AS/'textures/block/model/cardboard_detail.png');textures['cardboard_detail']='bocchi:block/model/cardboard_detail'
 # Stage props, constructed from low-poly cuboids.
 props={
-'bocchi_box':[element([1,0,1],[15,9,15],'cardboard'),element([1,8,0],[15,9,3],'carddark'),element([1,8,13],[15,9,16],'carddark'),element([6,3,.95],[10,5,1],'carddark')],
+'bocchi_box':[element([1,0,1],[15,9,2],'cardboard'),element([1,0,14],[15,9,15],'cardboard'),element([1,0,2],[2,9,14],'cardboard'),element([14,0,2],[15,9,14],'cardboard'),element([2,0,2],[14,1,14],'cardboard'),element([1,8,0],[15,9,3],'carddark'),element([1,8,13],[15,9,16],'carddark'),element([6,3,.95],[10,5,1],'carddark')],
 'amplifier':[element([2,0,3],[14,11,13],'black'),element([3,2,2.9],[13,8,3],'metal'),element([3,9,2.8],[4,10,3],'yellow'),element([6,9,2.8],[7,10,3],'red'),element([6,11,6],[10,12,9],'black')],
 'speaker':[element([3,0,3],[13,14,13],'black'),element([4,2,2.9],[12,8,3],'metal'),element([6,10,2.8],[10,13,3],'metal'),element([5,3,2.8],[11,7,2.9],'black')],
 'drum_kit':[element([5,1,3],[11,7,9],'yellow'),element([5,2,2.9],[11,6,3],'white'),element([2,6,7],[6,9,11],'yellow'),element([10,6,7],[14,9,11],'yellow'),element([2,9,7],[6,9.5,11],'white'),element([10,9,7],[14,9.5,11],'white'),element([1,0,12],[2,11,13],'metal'),element([0,11,10],[5,11.4,15],'yellow'),element([13,0,12],[14,11,13],'metal'),element([11,11,10],[16,11.4,15],'yellow')],
@@ -158,7 +158,7 @@ props={
 # Reinforced box panels, folded lips, taped seam and physical edge creases.
 box=props['bocchi_box'];box[0]['faces']['north']['texture']='#cardboard_detail';box[0]['faces']['south']['texture']='#cardboard_detail'
 box += [element([1,0,.9],[1.3,9,15.1],'carddark'),element([14.7,0,.9],[15,9,15.1],'carddark'),
-        element([1,0,1],[15,.3,15],'carddark'),element([7.2,9,3],[8.8,9.12,13],'wood'),
+        element([1,0,1],[15,.3,15],'carddark'),element([7.2,0,.85],[8.8,8.5,.95],'wood'),
         element([1,8.5,3],[2,9.1,13],'carddark'),element([14,8.5,3],[15,9.1,13],'carddark')]
 # Stepped octagonal drums: shells, contrasting rims, skins, lugs and a supported rack.
 def drum(cx,cy,cz,r,height,axis='y'):
@@ -266,6 +266,12 @@ for path in (AS/'blockstates').glob('*.json'):
  js(DATA/f'loot_table/blocks/{ident}.json',{'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':'bocchi:'+ident}],'conditions':[{'condition':'minecraft:survives_explosion'}]}]})
 # Unlock survival recipes from the start; also accessible with /recipe give.
 js(DATA/'advancement/recipes/welcome.json',{'criteria':{'join':{'trigger':'minecraft:tick'}},'rewards':{'recipes':['bocchi:'+p.stem for p in (DATA/'recipe').glob('*.json')]}})
+import runpy
+runpy.run_path(str(Path(__file__).with_name('generate_equipment.py')),init_globals={'AS':AS,'DATA':DATA,'js':js,'element':element,'model':model,'lang':lang,'textures':textures})
 js(AS/'lang/ru_ru.json',ru);js(AS/'lang/en_us.json',en)
 (ROOT/'pack.mcmeta').write_text(json.dumps({'pack':{'pack_format':34,'description':'BTR World · 1.21.1'}},ensure_ascii=False))
 print('Generated',len(ru),'translations;',len(list((DATA/'recipe').glob('*.json'))),'recipes')
+
+# Keep the expansion deterministic when regenerating base assets.
+import runpy
+runpy.run_path(str(Path(__file__).with_name("generate_expansion.py")))

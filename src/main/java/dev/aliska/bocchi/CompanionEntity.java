@@ -29,6 +29,26 @@ import net.minecraft.sound.SoundEvents;
 public class CompanionEntity extends WolfEntity implements PolymerEntity {
  private int hidingTicks, grassTicks, happyTicks, panicTicks;
  private java.util.UUID bandLeader;
+ private CompanionGenes genes;
+ private int pairingTicks, breedingCooldown, growthTicks;
+ private int courtshipTicks;
+ private java.util.UUID courtshipMate;
+ private float lastScale=-1;
+ public CompanionGenes genes() {
+  if(genes==null) genes=new CompanionGenes(kind().ordinal(),kind().ordinal(),0);
+  return genes;
+ }
+ public void recall() { setSitting(false);navigation.stop();happyTicks=40; }
+ private boolean ready() { return isAlive()&&isTamed()&&growthTicks==0&&breedingCooldown==0&&pairingTicks>0&&panicTicks==0&&hidingTicks==0; }
+ private boolean compatible(CompanionEntity other) { return other!=this&&other.ready()&&java.util.Objects.equals(getOwnerUuid(),other.getOwnerUuid()); }
+ private CompanionEntity partner(ServerWorld world) {
+  if(courtshipMate!=null) {
+   Entity locked=world.getEntity(courtshipMate);
+   if(locked instanceof CompanionEntity girl && compatible(girl) && squaredDistanceTo(girl)<64) return girl;
+  }
+  return world.getEntitiesByClass(CompanionEntity.class,getBoundingBox().expand(8),this::compatible).stream().min(java.util.Comparator.comparingDouble(this::squaredDistanceTo)).orElse(null);
+ }
+
  private float visualMountOffset = Float.NaN;
  public CompanionEntity(EntityType<? extends WolfEntity> type, World world) {
   super(type, world);
@@ -43,6 +63,18 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
    @Override public boolean canStart() { return kind()==CharacterKind.BOCCHI && panicTicks>0 && !isSitting() && super.canStart(); }
    @Override public boolean shouldContinue() { return panicTicks>0 && !isSitting() && super.shouldContinue(); }
   });
+  goalSelector.add(2,new Goal() {
+   private CompanionEntity mate;
+   { setControls(java.util.EnumSet.of(Control.MOVE,Control.LOOK)); }
+   @Override public boolean canStart() { return ready() && getWorld() instanceof ServerWorld world && (mate=partner(world))!=null; }
+   @Override public boolean shouldContinue() { return ready()&&mate!=null&&compatible(mate)&&squaredDistanceTo(mate)<100; }
+   @Override public void tick() {
+    faceMate(mate);
+    if(squaredDistanceTo(mate)>.72) navigation.startMovingTo(mate,.8);
+    else navigation.stop();
+   }
+   @Override public void stop() { mate=null;navigation.stop(); }
+  });
   goalSelector.add(3,new FollowBandGoal());
   goalSelector.add(3,new FollowOwnerGoal(this,1.1,3.0F,1.5F));
   goalSelector.add(4,new WanderAroundFarGoal(this,0.65));
@@ -56,21 +88,28 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   if (!isTamed() && held.isOf(kind().treat)) {
    happyTicks=100; consume(player,held); setOwner(player); setSitting(false); heal(getMaxHealth());
    getWorld().sendEntityStatus(this,(byte)7);
-   player.sendMessage(Text.literal(kind().name+": теперь пойдём вместе! 💛"),true);
+   BtrAdvancements.grant(player,"first_friend");
+   BtrAdvancements.grant(player,"quartet",kind().id);
    return ActionResult.SUCCESS;
   }
   if (isOwner(player)) {
-   if (kind()==CharacterKind.RYO && held.isOf(Items.EMERALD)) {
-    happyTicks=60; consume(player,held);
-    Item item = BocchiMod.FIGURINES.get(CharacterKind.values()[random.nextInt(4)]);
-    if(!player.giveItemStack(new ItemStack(item))) player.dropItem(new ItemStack(item),false);
-    player.sendMessage(Text.literal("Рё: фигурка за изумруд. Никаких возвратов."),true);
+   BtrAdvancements.grant(player,"first_friend");
+   BtrAdvancements.grant(player,"quartet",kind().id);
+   if(held.isOf(kind().treat) && growthTicks==0 && breedingCooldown==0 && pairingTicks==0 && getHealth()>=getMaxHealth()) {
+    consume(player,held);pairingTicks=600;setSitting(false);happyTicks=60;
+    ((ServerWorld)getWorld()).spawnParticles(ParticleTypes.HEART,getX(),getY()+.8,getZ(),5,.3,.2,.3,0);
     return ActionResult.SUCCESS;
    }
-   if (held.isOf(kind().treat)) { happyTicks=80; consume(player,held); heal(6); getWorld().sendEntityStatus(this,(byte)7); return ActionResult.SUCCESS; }
+   if (kind()==CharacterKind.RYO && held.isOf(Items.EMERALD)) {
+    happyTicks=60; consume(player,held);
+    BtrAdvancements.grant(player,"ryo_trade");
+    Item item = BocchiMod.FIGURINES.get(CharacterKind.values()[random.nextInt(4)]);
+    if(!player.giveItemStack(new ItemStack(item))) player.dropItem(new ItemStack(item),false);
+    return ActionResult.SUCCESS;
+   }
+   if (held.isOf(kind().treat) && getHealth()<getMaxHealth()) { happyTicks=80; consume(player,held); heal(6); getWorld().sendEntityStatus(this,(byte)7); return ActionResult.SUCCESS; }
    if (held.isEmpty()) {
     setSitting(!isSitting()); navigation.stop();
-    player.sendMessage(Text.literal(kind().name+(isSitting()?": подожду здесь.":": иду за Алиской!")),true);
     return ActionResult.SUCCESS;
    }
   }
@@ -86,6 +125,11 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   super.tick();
   if (!(getWorld() instanceof ServerWorld world) || !isAlive()) return;
   setInvisible(true);
+  if(breedingCooldown>0) breedingCooldown--;
+  if(growthTicks>0) growthTicks--;
+  if(pairingTicks>0) pairingTicks--;
+  if(ready()) tryPair(world);
+  else { courtshipTicks=0;courtshipMate=null; }
   if(happyTicks>0) happyTicks--;
   if(panicTicks>0 && --panicTicks==0) hidingTicks=60;
   if(hidingTicks>0) { hidingTicks--; navigation.stop(); }
@@ -115,6 +159,50 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   }
   updateVisual(world);
  }
+ private void faceMate(CompanionEntity mate) {
+  getLookControl().lookAt(mate,30,30);
+  // The visible model rotates with the body, not the invisible wolf's head.
+  float facing=(float)(Math.atan2(mate.getZ()-getZ(),mate.getX()-getX())*180/Math.PI)-90;
+  setYaw(facing);setBodyYaw(facing);setHeadYaw(facing);
+ }
+ private void tryPair(ServerWorld world) {
+  CompanionEntity mate=partner(world);
+  if(mate==null) { courtshipTicks=0;courtshipMate=null;return; }
+  if(getId()>mate.getId()) return;
+  if(mate.courtshipMate!=null && !mate.courtshipMate.equals(getUuid())) {
+   courtshipTicks=0;courtshipMate=null;return;
+  }
+  if(!mate.getUuid().equals(courtshipMate)) courtshipTicks=0;
+  courtshipMate=mate.getUuid();mate.courtshipMate=getUuid();
+  if(squaredDistanceTo(mate)>1 || !canSee(mate)) { courtshipTicks=0;return; }
+  faceMate(mate);mate.faceMate(this);
+  happyTicks=Math.max(happyTicks,20);mate.happyTicks=Math.max(mate.happyTicks,20);
+  if(++courtshipTicks%5==0) {
+   for(CompanionEntity parent:new CompanionEntity[]{this,mate})
+    world.spawnParticles(ParticleTypes.HEART,parent.getX(),parent.getY()+.75,parent.getZ(),3,.22,.18,.22,0);
+  }
+  if(courtshipTicks<60) return;
+  // Retry a blocked birth position at most once per second.
+  if(courtshipTicks>60 && courtshipTicks%20!=0) return;
+  var inheritanceRandom=new java.util.Random(random.nextLong());
+  CompanionGenes inherited=CompanionGenes.cross(kind().ordinal(),genes().generation(),mate.kind().ordinal(),mate.genes().generation());
+  CharacterKind childKind=CharacterKind.values()[inherited.heroine(inheritanceRandom)];
+  boolean childPlush=random.nextBoolean()?plush():mate.plush();
+  var type=BocchiMod.KINDS.keySet().stream().filter(t->BocchiMod.KINDS.get(t)==childKind && BocchiMod.PLUSH_TYPES.contains(t)==childPlush).findFirst().orElseThrow();
+  CompanionEntity child=(CompanionEntity)type.create(world);
+  if(child==null || !(getOwner() instanceof PlayerEntity owner)) return;
+  child.refreshPositionAndAngles((getX()+mate.getX())/2,getY(),(getZ()+mate.getZ())/2,getYaw(),0);
+  if(!world.isSpaceEmpty(child)) return;
+  child.genes=inherited;
+  child.growthTicks=6000;child.setOwner(owner);child.setSitting(false);child.bandLeader=bandLeader;
+  if(!world.spawnEntity(child)) return;
+  courtshipTicks=mate.courtshipTicks=0;courtshipMate=mate.courtshipMate=null;
+  pairingTicks=mate.pairingTicks=0;breedingCooldown=mate.breedingCooldown=6000;happyTicks=mate.happyTicks=100;
+  world.spawnParticles(ParticleTypes.HEART,child.getX(),child.getY()+.5,child.getZ(),16,.4,.3,.4,0);
+  BtrAdvancements.grant(owner,"new_generation");
+  if(kind()!=mate.kind() || plush()!=mate.plush()) BtrAdvancements.grant(owner,"mixed_duet");
+  if(child.genes.generation()>=3) BtrAdvancements.grant(owner,"family_tree");
+ }
  private void eatGrass(ServerWorld world) {
   BlockPos pos=getBlockPos();
   if(world.getBlockState(pos).isOf(Blocks.SHORT_GRASS)) {
@@ -130,7 +218,7 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   DisplayEntity.ItemDisplayEntity display=null;
   for(Entity passenger:getPassengerList()) if(passenger instanceof DisplayEntity.ItemDisplayEntity item) { display=item; break; }
   if(display==null) {
-   visualMountOffset=Float.NaN;
+   visualMountOffset=Float.NaN;lastScale=-1;
    display=new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY,world);
    display.setPosition(getPos());
    display.addCommandTag("bocchi_companion_visual");
@@ -142,8 +230,12 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   if(Float.isNaN(visualMountOffset)) {
    WolfEntity vanillaWolf=new WolfEntity(EntityType.WOLF,world);
    visualMountOffset=(float)(vanillaWolf.getPassengerRidingPos(display).y-vanillaWolf.getY());
+  }
+  float scale=growthTicks>0?.6F:1F;
+  if(lastScale!=scale || Float.isNaN(visualMountOffset)) {
+   lastScale=scale;
    ((DisplayAccessor)display).bocchi$setTransformation(new AffineTransformation(
-   new Vector3f(0,-visualMountOffset,0),new Quaternionf(),new Vector3f(1,1,1),new Quaternionf()));
+   new Vector3f(0,-visualMountOffset,0),new Quaternionf(),new Vector3f(scale,scale,scale),new Quaternionf()));
   }
   String mood=hurtTime>0?"surprised":happyTicks>0?"happy":(grassTicks>0 || panicTicks>0)?"squint":isSitting()?"sleepy":"";
   String name=kind().id+(plush()?"_plush":"_chibi")+(mood.isEmpty()?"":"_"+mood);
@@ -214,6 +306,10 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   if(reason.shouldDestroy()) for(Entity passenger:getPassengerList()) passenger.discard();
   super.remove(reason);
  }
- @Override public void writeCustomDataToNbt(NbtCompound nbt) { super.writeCustomDataToNbt(nbt); nbt.putInt("BocchiHiding",hidingTicks); nbt.putInt("BocchiPanic",panicTicks); if(bandLeader!=null) nbt.putUuid("BocchiBandLeader",bandLeader); }
- @Override public void readCustomDataFromNbt(NbtCompound nbt) { super.readCustomDataFromNbt(nbt); hidingTicks=nbt.getInt("BocchiHiding"); panicTicks=nbt.getInt("BocchiPanic"); bandLeader=nbt.containsUuid("BocchiBandLeader")?nbt.getUuid("BocchiBandLeader"):null; setInvisible(true); setSilent(true); }
+ @Override public void writeCustomDataToNbt(NbtCompound nbt) { super.writeCustomDataToNbt(nbt); nbt.putInt("BocchiHiding",hidingTicks); nbt.putInt("BocchiPanic",panicTicks); if(bandLeader!=null) nbt.putUuid("BocchiBandLeader",bandLeader);
+  nbt.putIntArray("BtrGenes",new int[]{genes().heroineA(),genes().heroineB(),genes().generation()});
+  nbt.putInt("BtrGrowth",growthTicks);nbt.putInt("BtrBreedCooldown",breedingCooldown);nbt.putInt("BtrPairing",pairingTicks); }
+ @Override public void readCustomDataFromNbt(NbtCompound nbt) { super.readCustomDataFromNbt(nbt); hidingTicks=nbt.getInt("BocchiHiding"); panicTicks=nbt.getInt("BocchiPanic"); int[] g=nbt.getIntArray("BtrGenes");if(g.length==3) genes=new CompanionGenes(g[0],g[1],g[2]);
+  growthTicks=Math.max(0,Math.min(6000,nbt.getInt("BtrGrowth")));breedingCooldown=Math.max(0,Math.min(6000,nbt.getInt("BtrBreedCooldown")));pairingTicks=Math.max(0,Math.min(600,nbt.getInt("BtrPairing")));lastScale=-1;
+  bandLeader=nbt.containsUuid("BocchiBandLeader")?nbt.getUuid("BocchiBandLeader"):null; setInvisible(true); setSilent(true); }
 }

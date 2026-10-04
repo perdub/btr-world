@@ -29,6 +29,7 @@ public class BocchiMod implements ModInitializer {
  public static Identifier id(String path) { return Identifier.of("bocchi",path); }
  public static <T extends Item> T item(String path,T item) { Registry.register(Registries.ITEM,id(path),item); ITEMS.add(item); return item; }
  @Override public void onInitialize() {
+  BoxSeats.initialize();
   PolymerResourcePackUtils.addModAssets("bocchi");
   PolymerResourcePackUtils.markAsRequired();
   BOX_MODEL=Registry.register(Registries.ITEM,id("hiding_box"),new ModelItem("hiding_box",new Item.Settings()));
@@ -61,10 +62,18 @@ public class BocchiMod implements ModInitializer {
    DecorationBlock block=new DecorationBlock(name); Registry.register(Registries.BLOCK,id(name),block); BLOCKS.put(name,block); item(name,new PaletteItem(name,block));
   }
   item("guitar",new GuitarItem());
+  item("rehearsal_bell",new RehearsalBellItem());
+  item("mango_box_hat",new DecorativeHatItem("mango_box_hat"));
+  item("nijika_ahoge",new DecorativeHatItem("nijika_ahoge"));
+  item("stop_sign",new ModelItem("stop_sign",new Item.Settings().maxCount(1)));
+  item("pink_hood",new CostumeItem(EquipmentSlot.HEAD,Items.LEATHER_HELMET));
+  item("pink_jacket",new CostumeItem(EquipmentSlot.CHEST,Items.LEATHER_CHESTPLATE));
+  item("pink_pants",new CostumeItem(EquipmentSlot.LEGS,Items.LEATHER_LEGGINGS));
+  item("pink_shoes",new CostumeItem(EquipmentSlot.FEET,Items.LEATHER_BOOTS));
   PolymerItemGroupUtils.registerPolymerItemGroup(id("little_stage"),PolymerItemGroupUtils.builder().displayName(Text.literal("BTR World")).icon(()->new ItemStack(FIGURINES.get(CharacterKind.NIJIKA))).entries((context,entries)->ITEMS.forEach(entries::add)).build());
   if (Boolean.getBoolean("bocchi.validateResources")) {
    VisualValidation.run();
-   if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 56) {
+   if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 64) {
     throw new IllegalStateException("BTR World creative tab registration failed: " + ITEMS.size() + " player-facing entries");
    }
    org.slf4j.LoggerFactory.getLogger("bocchi").info("Creative tab BTR World registered with {} player-facing entries.", ITEMS.size());
@@ -72,7 +81,7 @@ public class BocchiMod implements ModInitializer {
    if(!built) throw new IllegalStateException("Bocchi resource pack validation failed");
    org.slf4j.LoggerFactory.getLogger("bocchi").info("Resource pack validation passed.");
   }
-  org.slf4j.LoggerFactory.getLogger("bocchi").info("Little Stage registered: 8 companions, 47 blocks, 56 recipes.");
+  org.slf4j.LoggerFactory.getLogger("bocchi").info("Little Stage registered: 8 companions, 47 blocks, 64 recipes.");
   CommandRegistrationCallback.EVENT.register((dispatcher,access,env)-> {
    dispatcher.register(CommandManager.literal("bocchi").then(CommandManager.literal("stage").requires(source->source.hasPermissionLevel(2)).executes(context-> {
     var player=context.getSource().getPlayerOrThrow(); ServerWorld world=player.getServerWorld();

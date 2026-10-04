@@ -1,0 +1,46 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:note_block"
+    },
+    "title": {
+      "translate": "advancements.bocchi.quartet.title"
+    },
+    "description": {
+      "translate": "advancements.bocchi.quartet.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "bocchi": {
+      "trigger": "minecraft:impossible"
+    },
+    "nijika": {
+      "trigger": "minecraft:impossible"
+    },
+    "ryo": {
+      "trigger": "minecraft:impossible"
+    },
+    "kita": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "bocchi"
+    ],
+    [
+      "nijika"
+    ],
+    [
+      "ryo"
+    ],
+    [
+      "kita"
+    ]
+  ],
+  "parent": "bocchi:first_friend"
+}
