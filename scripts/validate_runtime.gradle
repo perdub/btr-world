@@ -1,7 +1,17 @@
 allprojects {
  afterEvaluate {
+  def directory = project.file(project.property('btrValidationDir'))
+  // Loom configures its own launch directory; set it on the run configuration.
+  project.extensions.getByName('loom').runs.named('server').configure {
+   runDir project.relativePath(directory)
+  }
   tasks.matching { it.name == 'runServer' }.configureEach {
-   workingDir project.file(project.property('btrValidationDir'))
+   workingDir directory
+   doFirst {
+    workingDir directory
+    logger.lifecycle("BTR validation working directory: " + workingDir)
+    if (!new File(workingDir, 'server.properties').isFile() || !new File(workingDir, 'eula.txt').isFile()) throw new GradleException('Missing validation server.properties/eula.txt')
+   }
    jvmArgs '-Dbocchi.validateResources=true'
    if (project.hasProperty('btrExhausted')) jvmArgs '-Dbocchi.testExhaustedBlockStates=true'
   }
