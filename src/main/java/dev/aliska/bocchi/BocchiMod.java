@@ -29,6 +29,7 @@ public class BocchiMod implements ModInitializer {
  public static Identifier id(String path) { return Identifier.of("bocchi",path); }
  public static <T extends Item> T item(String path,T item) { Registry.register(Registries.ITEM,id(path),item); ITEMS.add(item); return item; }
  @Override public void onInitialize() {
+  BlockVisuals.exhaustForTest();
   BoxSeats.initialize();
   PolymerResourcePackUtils.addModAssets("bocchi");
   PolymerResourcePackUtils.markAsRequired();

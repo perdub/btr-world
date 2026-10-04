@@ -42,6 +42,10 @@ jobs:
         env:
           MOD_VERSION: ${{ steps.version.outputs.version }}
         run: bash ./gradlew --no-daemon build "-Pmod_version=$MOD_VERSION"
+      - name: Validate Minecraft block mappings
+        run: python3 scripts/validate_runtime.py
+      - name: Validate exhausted Polymer pools
+        run: python3 scripts/validate_runtime.py --exhausted
       - name: Prepare assets with stable names
         run: python3 scripts/prepare_release.py
       - uses: actions/upload-artifact@v7

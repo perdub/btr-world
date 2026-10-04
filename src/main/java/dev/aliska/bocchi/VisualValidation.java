@@ -14,6 +14,15 @@ import org.joml.Vector3f;
 import org.joml.Quaternionf;
 final class VisualValidation {
  static void run() {
+  int checked=0;
+  for(var entry:BocchiMod.BLOCKS.entrySet()) for(var state:entry.getValue().getStateManager().getStates()) {
+   try {
+    state.initShapeCache();
+    if(((eu.pb4.polymer.blocks.api.PolymerTexturedBlock)entry.getValue()).getPolymerBlockState(state)==null) throw new IllegalStateException("Null client state");
+    checked++;
+   } catch(Exception error) { throw new IllegalStateException("Invalid Polymer mapping: bocchi:"+entry.getKey()+" "+state,error); }
+  }
+  org.slf4j.LoggerFactory.getLogger("bocchi").info("Validated {} Polymer block states including collision caches.",checked);
   if(BocchiMod.MODELS.size()!=40) throw new IllegalStateException("Expected 8 neutral and 32 expression models");
   var world=PolymerCommonUtils.getFakeWorld();
   var seat=new net.minecraft.entity.decoration.ArmorStandEntity(net.minecraft.entity.EntityType.ARMOR_STAND,world);

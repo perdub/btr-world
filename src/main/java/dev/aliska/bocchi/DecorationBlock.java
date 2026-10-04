@@ -17,9 +17,9 @@ public class DecorationBlock extends Block implements PolymerTexturedBlock {
  public DecorationBlock(String id) {
   super(Settings.create().strength(0.7F).nonOpaque().noCollision().sounds(net.minecraft.sound.BlockSoundGroup.WOOD));
   this.id=id;
-  visual=PolymerBlockResourceUtils.requestBlock(BlockModelType.TRIPWIRE_BLOCK_FLAT,PolymerBlockModel.of(Identifier.of("bocchi","block/"+id)));
+  visual=BlockVisuals.allocate(id,PolymerBlockModel.of(Identifier.of("bocchi","block/"+id)),false);
  }
- @Override public BlockState getPolymerBlockState(BlockState state) { return visual; }
+ @Override public BlockState getPolymerBlockState(BlockState state) { return visual!=null?visual:Blocks.AIR.getDefaultState(); }
  @Override protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
   return Block.createCuboidShape(2,0,2,14,id.endsWith("figurine")?13:12,14);
  }

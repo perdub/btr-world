@@ -7,7 +7,7 @@ public class PaletteBlock extends Block implements PolymerTexturedBlock {
  private final BlockState clientState;
  public PaletteBlock(String id, Settings settings) {
   super(settings);
-  clientState = PolymerBlockResourceUtils.requestBlock(BlockModelType.FULL_BLOCK, PolymerBlockModel.of(Identifier.of("bocchi", "block/"+id)));
+  clientState = BlockVisuals.allocate(id, PolymerBlockModel.of(Identifier.of("bocchi", "block/"+id)),true);
  }
- @Override public BlockState getPolymerBlockState(BlockState state) { return clientState; }
+ @Override public BlockState getPolymerBlockState(BlockState state) { return clientState!=null?clientState:Blocks.WHITE_WOOL.getDefaultState(); }
 }

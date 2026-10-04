@@ -24,11 +24,11 @@ public final class WallDecorBlock extends Block implements PolymerTexturedBlock 
    if(!ceiling && direction.getAxis().isVertical()) continue;
    int x=direction==Direction.DOWN?90:direction==Direction.UP?270:0;
    int y=switch(direction) {case EAST->90;case SOUTH->180;case WEST->270;default->0;};
-   visuals.put(direction,PolymerBlockResourceUtils.requestBlock(BlockModelType.TRIPWIRE_BLOCK_FLAT,PolymerBlockModel.of(Identifier.of("bocchi","block/"+id),x,y)));
+   visuals.put(direction,BlockVisuals.allocate(id+"/"+direction.getName(),PolymerBlockModel.of(Identifier.of("bocchi","block/"+id),x,y),false));
   }
  }
  @Override protected void appendProperties(StateManager.Builder<Block,BlockState> builder) { builder.add(FACING); }
- @Override public BlockState getPolymerBlockState(BlockState state) { return visuals.getOrDefault(state.get(FACING),visuals.get(Direction.NORTH)); }
+ @Override public BlockState getPolymerBlockState(BlockState state) { if(visuals==null) return Blocks.AIR.getDefaultState(); BlockState visual=visuals.getOrDefault(state.get(FACING),visuals.get(Direction.NORTH)); return visual!=null?visual:Blocks.AIR.getDefaultState(); }
  @Override public BlockState getPlacementState(ItemPlacementContext context) {
   Direction face=context.getSide();
   if(!ceiling && face.getAxis().isVertical()) return null;

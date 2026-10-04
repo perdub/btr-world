@@ -1,0 +1,8 @@
+allprojects {
+ afterEvaluate {
+  tasks.matching { it.name == 'runServer' }.configureEach {
+   jvmArgs '-Dbocchi.validateResources=true'
+   if (project.hasProperty('btrExhausted')) jvmArgs '-Dbocchi.testExhaustedBlockStates=true'
+  }
+ }
+}
