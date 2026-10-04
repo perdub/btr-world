@@ -8,7 +8,12 @@ root = Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
 p.add_argument('--exhausted', action='store_true')
 args = p.parse_args()
-cmd = ['bash', './gradlew', '--no-daemon', 'runServer', '-I', str(root / 'scripts/validate_runtime.gradle')]
+# Dedicated validation directory: never run against an existing gameplay world.
+run_dir = root / 'build' / ('runtime-validation-exhausted' if args.exhausted else 'runtime-validation-normal')
+run_dir.mkdir(parents=True, exist_ok=True)
+(run_dir / 'server.properties').write_text('online-mode=false\nserver-port=0\n', encoding='utf-8')
+(run_dir / 'eula.txt').write_text('eula=false\n', encoding='utf-8')
+cmd = ['bash', './gradlew', '--no-daemon', 'runServer', '-I', str(root / 'scripts/validate_runtime.gradle'), '-PbtrValidationDir=' + str(run_dir)]
 if args.exhausted:
     cmd.append('-PbtrExhausted=true')
 result = subprocess.run(cmd, cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)

@@ -1,6 +1,7 @@
 allprojects {
  afterEvaluate {
   tasks.matching { it.name == 'runServer' }.configureEach {
+   workingDir project.file(project.property('btrValidationDir'))
    jvmArgs '-Dbocchi.validateResources=true'
    if (project.hasProperty('btrExhausted')) jvmArgs '-Dbocchi.testExhaustedBlockStates=true'
   }
