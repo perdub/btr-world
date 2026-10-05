@@ -1,3 +1,8 @@
+# Workflow fix · Modrinth project preflight
+
+- `prepare` понимает Modrinth `status=processing`, сверяя отдельно `requested_status`. Продолжает работу только для явного целевого статуса `draft` или `unlisted`; не меняет настройки проекта.
+- В preflight выводятся оба статуса; неоднозначное состояние завершится объясняющей ошибкой.
+
 # BTR World 0.5.1
 
 - Исправлена ложная ошибка `Stage/name persistence failed` в проверке CI: имя загружается и сохраняется через полный NBT сущности.

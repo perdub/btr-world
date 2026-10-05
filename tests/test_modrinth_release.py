@@ -20,6 +20,20 @@ class VerificationTests(unittest.TestCase):
                              'primary': i == 0, 'file_type': 'sources-jar' if i else None} for i, f in enumerate(self.files)]}
     def tearDown(self):
         self.tmp.cleanup()
+    def test_project_draft_allowed(self):
+        p.validate_project_visibility({'status': 'draft'})
+    def test_project_unlisted_allowed(self):
+        p.validate_project_visibility({'status': 'unlisted'})
+    def test_processing_with_private_target_allowed(self):
+        p.validate_project_visibility({'status': 'processing', 'requested_status': 'unlisted'})
+        p.validate_project_visibility({'status': 'processing', 'requested_status': 'draft'})
+    def test_processing_without_private_target_rejected(self):
+        for requested in (None, 'approved', 'private'):
+            with self.subTest(requested_status=requested), self.assertRaisesRegex(ValueError, 'requested_status'):
+                p.validate_project_visibility({'status': 'processing', 'requested_status': requested})
+    def test_public_project_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'expected draft or unlisted'):
+            p.validate_project_visibility({'status': 'approved'})
     def test_correct_readback(self):
         p.check_version(self.v, {'id': 'project'}, '1.0.0', self.files)
     def test_wrong_project_rejected(self):

@@ -63,6 +63,21 @@ def match(records, number, project_id, files):
     raise ValueError('Version number exists with different files; bump mod_version')
 
 
+def validate_project_visibility(project):
+    """Distinguish actual visibility from a pending request to stay private."""
+    status = project.get('status')
+    if status in ('draft', 'unlisted'):
+        return
+    # Modrinth uses `processing` while reviewing a requested project transition.
+    # It is safe for this plan only when the pending target is still non-public.
+    requested = project.get('requested_status')
+    if status == 'processing' and requested in ('draft', 'unlisted'):
+        return
+    if status == 'processing':
+        raise ValueError(f"Project is processing with requested_status={requested!r}; expected draft or unlisted. Refusing upload.")
+    raise ValueError(f'Project status is {status!r}; expected draft or unlisted. Refusing upload.')
+
+
 def check_version(v, project, number, files):
     if not match([v], number, project['id'], files):
         raise ValueError('Version number does not match the built JAR')
@@ -97,7 +112,7 @@ def main():
     if not token or not identifier:
         raise ValueError('Set MODRINTH_PROJECT_ID and MODRINTH_TOKEN in Actions')
     project = get('/project/' + urllib.parse.quote(identifier, safe=''), token)
-    print(f'Project: {project["title"]}; ID={project["id"]}; slug={project.get("slug")}; status={project["status"]}')
+    print(f'Project: {project["title"]}; ID={project["id"]}; slug={project.get("slug")}; status={project["status"]}; requested_status={project.get('requested_status')!r}')
     if args.mode == 'inspect':
         if not args.version_id:
             raise ValueError('inspect requires --version-id')
@@ -106,8 +121,7 @@ def main():
             raise ValueError('Version belongs to a different project')
         print(json.dumps({k: v[k] for k in ['id', 'project_id', 'version_number', 'status', 'files']}, indent=2))
         return
-    if project['status'] not in ['draft', 'unlisted']:
-        raise ValueError('This project must remain draft/unlisted under its release plan')
+    validate_project_visibility(project)
     number, files = inspect(args.artifacts)
     found = match(versions(project, token), number, project['id'], files)
     if args.mode == 'prepare':
