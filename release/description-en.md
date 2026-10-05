@@ -45,3 +45,7 @@ This version is a beta. Automated build, resource and inheritance checks do not 
 A substantial amount of the code, assets, translations and documentation was produced with generative AI assistance, based on Aliska's ideas and feedback. The mod does not use generative AI at runtime. This project is prepared for unlisted distribution under Modrinth's current policies, subject to moderation.
 
 Unofficial fan project; not affiliated with Bocchi the Rock!'s creators, Mojang or Microsoft. MIT covers the project's own implementation and does not grant rights to the original franchise. No original anime frames, audio recordings or third-party model files are bundled.
+
+## Concert venues
+
+New chunks can contain STARRY-inspired, school festival and indie-club buildings. Each has a full set of equipment and four living Chibi/Tsum companions. Untamed stage residents perform original note-block phrases for nearby spectators and can be befriended. Companion names use consistent Russian, Belarusian and English translations.

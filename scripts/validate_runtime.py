@@ -19,7 +19,7 @@ if args.exhausted:
 result = subprocess.run(cmd, cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)
 print(result.stdout)
 # Minecraft initialization failures can still make Gradle report BUILD SUCCESSFUL.
-if result.returncode or '[main/ERROR]' in result.stdout or 'Validated 80 Polymer block states including collision caches.' not in result.stdout or 'Resource pack validation passed.' not in result.stdout:
+if result.returncode or '[main/ERROR]' in result.stdout or 'Validated 80 Polymer block states including collision caches.' not in result.stdout or 'Resource pack validation passed.' not in result.stdout or 'Validated 9 stage templates, 36 live performers and legacy name migration.' not in result.stdout:
     sys.exit('Minecraft block/resource validation failed; see output above')
 if args.exhausted and 'No Polymer model states available' not in result.stdout:
     sys.exit('Pool exhaustion was not exercised')

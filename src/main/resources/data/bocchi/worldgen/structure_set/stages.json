@@ -1,0 +1,22 @@
+{
+  "structures": [
+    {
+      "structure": "bocchi:starry_stage",
+      "weight": 1
+    },
+    {
+      "structure": "bocchi:school_stage",
+      "weight": 1
+    },
+    {
+      "structure": "bocchi:indie_stage",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 36,
+    "separation": 12,
+    "salt": 2374029
+  }
+}

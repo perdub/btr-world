@@ -279,3 +279,6 @@ runpy.run_path(str(Path(__file__).with_name("generate_expansion.py")))
 runpy.run_path(str(Path(__file__).with_name("generate_room_decor.py")))
 
 runpy.run_path(str(Path(__file__).with_name("generate_craft_guide.py")))
+
+from standardize_names import standardize
+standardize()

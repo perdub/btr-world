@@ -62,6 +62,49 @@ final class VisualValidation {
     if(template.getSize().getY()!=18 || templateNbt.getList("blocks",NbtElement.COMPOUND_TYPE).size()<500) throw new IllegalStateException("Invalid statue template "+kind.id);
    }
   } catch(Exception e) { throw new IllegalStateException("Statue validation failed",e); }
+  // These checks run in CI against Minecraft's actual NBT/block registries.
+  var legacy=new NbtCompound();probe.writeCustomDataToNbt(legacy);
+  legacy.putString("CustomName","{\"text\":\"Хитори · чиби\"}");
+  probe.readCustomDataFromNbt(legacy);
+  if(probe.hasCustomName()) throw new IllegalStateException("Automatic legacy name was not migrated");
+  legacy.putString("CustomName","{\"text\":\"Алискина подруга\"}");
+  legacy.putBoolean("BtrStagePerformer",true);legacy.putIntArray("BtrStageHome",new int[]{4,65,9});
+  probe.readCustomDataFromNbt(legacy);
+  var stageSave=new NbtCompound();probe.writeCustomDataToNbt(stageSave);
+  if(!probe.getName().getString().equals("Алискина подруга") || !stageSave.getBoolean("BtrStagePerformer")
+      || !java.util.Arrays.equals(stageSave.getIntArray("BtrStageHome"),new int[]{4,65,9})) throw new IllegalStateException("Stage/name persistence failed");
+  try {
+   var mod=net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("bocchi").orElseThrow();
+   for(String style:new String[]{"starry","school","indie"}) for(String population:new String[]{"chibi","tsum","mixed"}) {
+    var path=mod.findPath("data/bocchi/structure/stages/"+style+"_"+population+".nbt").orElseThrow();
+    var stage=net.minecraft.nbt.NbtIo.readCompressed(path,net.minecraft.nbt.NbtSizeTracker.ofUnlimitedBytes());
+    for(var tag:stage.getList("palette",NbtElement.COMPOUND_TYPE)) {
+     var stateNbt=(NbtCompound)tag;
+     var id=net.minecraft.util.Identifier.of(stateNbt.getString("Name"));
+     if(!net.minecraft.registry.Registries.BLOCK.containsId(id)) throw new IllegalStateException("Unknown stage block "+id);
+     var block=net.minecraft.registry.Registries.BLOCK.get(id);
+     var properties=stateNbt.getCompound("Properties");
+     for(String key:properties.getKeys()) {
+      var property=block.getStateManager().getProperty(key);
+      if(property==null || property.parse(properties.getString(key)).isEmpty()) throw new IllegalStateException("Invalid stage block property "+id+" "+key);
+     }
+    }
+    var template=new net.minecraft.structure.StructureTemplate();
+    template.readNbt(net.minecraft.registry.Registries.BLOCK.getReadOnlyWrapper(),stage);
+    if(stage.getList("entities",NbtElement.COMPOUND_TYPE).size()!=4) throw new IllegalStateException("Stage needs four live performers");
+    for(var tag:stage.getList("entities",NbtElement.COMPOUND_TYPE)) {
+     var mob=((NbtCompound)tag).getCompound("nbt");
+     var id=net.minecraft.util.Identifier.of(mob.getString("id"));
+     if(!net.minecraft.registry.Registries.ENTITY_TYPE.containsId(id)) throw new IllegalStateException("Unknown stage mob "+id);
+     var actor=net.minecraft.registry.Registries.ENTITY_TYPE.get(id).create(world);
+     if(!(actor instanceof CompanionEntity girl)) throw new IllegalStateException("Invalid stage mob "+id);
+     girl.readCustomDataFromNbt(mob);
+     var savedActor=new NbtCompound();girl.writeCustomDataToNbt(savedActor);
+     if(!savedActor.getBoolean("BtrStagePerformer") || girl.hasCustomName()) throw new IllegalStateException("Invalid performer NBT "+id);
+    }
+   }
+  } catch(Exception e) { throw new IllegalStateException("Stage validation failed",e); }
+  org.slf4j.LoggerFactory.getLogger("bocchi").info("Validated 9 stage templates, 36 live performers and legacy name migration.");
   org.slf4j.LoggerFactory.getLogger("bocchi").info("Visual validation passed: 40 models, display invokers, mount correction {} blocks.",offset);
  }
 }

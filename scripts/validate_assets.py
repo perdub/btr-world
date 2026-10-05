@@ -61,3 +61,9 @@ for path in achievements:
  for component in ('title','description'):
   key=obj['display'][component]['translate'];assert key in ru and key in en and key in be
 print('PASS: 4 statue NBT templates, 10 achievements, RU/BE/EN and normal toasts.')
+
+import unittest,sys
+sys.path.insert(0,str(R.parents[2]/'tests'))
+from test_stages import StageResources
+result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromTestCase(StageResources))
+assert result.wasSuccessful(), 'Stage validation failed'

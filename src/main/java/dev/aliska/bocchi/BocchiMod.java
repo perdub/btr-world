@@ -78,7 +78,7 @@ public class BocchiMod implements ModInitializer {
   item("pink_jacket",new CostumeItem(EquipmentSlot.CHEST,Items.LEATHER_CHESTPLATE));
   item("pink_pants",new CostumeItem(EquipmentSlot.LEGS,Items.LEATHER_LEGGINGS));
   item("pink_shoes",new CostumeItem(EquipmentSlot.FEET,Items.LEATHER_BOOTS));
-  PolymerItemGroupUtils.registerPolymerItemGroup(id("little_stage"),PolymerItemGroupUtils.builder().displayName(Text.literal("BTR World")).icon(()->new ItemStack(FIGURINES.get(CharacterKind.NIJIKA))).entries((context,entries)->ITEMS.forEach(entries::add)).build());
+  PolymerItemGroupUtils.registerPolymerItemGroup(id("little_stage"),PolymerItemGroupUtils.builder().displayName(Text.translatable("itemGroup.bocchi.little_stage")).icon(()->new ItemStack(FIGURINES.get(CharacterKind.NIJIKA))).entries((context,entries)->ITEMS.forEach(entries::add)).build());
   if (Boolean.getBoolean("bocchi.validateResources")) {
    VisualValidation.run();
    if (!PolymerItemGroupUtils.contains(id("little_stage")) || ITEMS.size() != 72) {

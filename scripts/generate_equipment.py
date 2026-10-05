@@ -28,3 +28,6 @@ for id,base in [('pink_hood','leather_helmet'),('pink_jacket','leather_chestplat
  js(DATA/f'recipe/{id}.json',{'type':'minecraft:crafting_shapeless','ingredients':[{'item':'minecraft:'+base},{'item':'minecraft:pink_wool'},{'item':'minecraft:string'}],'result':{'id':'bocchi:'+id,'count':1}})
 for id,pattern,key in [('mango_box_hat',['PPP','PAP','PPP'],{'P':'paper','A':'golden_apple'}),('nijika_ahoge',[' NN',' N ','S  '],{'N':'gold_nugget','S':'string'}),('stop_sign',['IRI','IRI',' S '],{'I':'iron_ingot','R':'red_dye','S':'stick'})]:
  js(DATA/f'recipe/{id}.json',{'type':'minecraft:crafting_shaped','pattern':pattern,'key':{k:{'item':'minecraft:'+v} for k,v in key.items()},'result':{'id':'bocchi:'+id,'count':1}})
+
+from standardize_names import standardize
+standardize()

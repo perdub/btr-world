@@ -6,10 +6,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 public class ModelItem extends Item implements PolymerItem {
  private final int model;
+ private final Item appearance;
  public ModelItem(String id, Settings settings) {
-  super(settings);
-  model = PolymerResourcePackUtils.requestModel(Items.PAPER, Identifier.of("bocchi", "item/"+id)).value();
+  this(id, settings, Items.PAPER);
  }
- @Override public Item getPolymerItem(ItemStack stack, ServerPlayerEntity player) { return Items.PAPER; }
+ public ModelItem(String id, Settings settings, Item appearance) {
+  super(settings);
+  this.appearance = appearance;
+  model = PolymerResourcePackUtils.requestModel(appearance, Identifier.of("bocchi", "item/"+id)).value();
+ }
+ @Override public Item getPolymerItem(ItemStack stack, ServerPlayerEntity player) { return appearance; }
  @Override public int getPolymerCustomModelData(ItemStack stack, ServerPlayerEntity player) { return model; }
 }

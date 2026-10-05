@@ -36,6 +36,9 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
  private float lastScale=-1;
  private int rehearsalCooldown;
  private boolean performing;
+ private BlockPos rehearsalInstrument;
+ private boolean stagePerformer;
+ private BlockPos stageHome;
  private int movementMode;
  private boolean hummingMuted;
  private int hummingDelay=600,hummingStep=-1,hummingBeat;
@@ -97,9 +100,24 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   });
   goalSelector.add(3,new RehearsalGoal());
   goalSelector.add(3,new FollowBandGoal());
-  goalSelector.add(3,new FollowOwnerGoal(this,1.1,3.0F,1.5F) {
-   @Override public boolean canStart() { return movementMode==0 && super.canStart(); }
-   @Override public boolean shouldContinue() { return movementMode==0 && super.shouldContinue(); }
+  // Walk only after the owner leaves the two-chunk radius. Hysteresis avoids
+  // restarting on the boundary; unlike vanilla FollowOwnerGoal this never teleports.
+  goalSelector.add(3,new Goal() {
+   private int delay;
+   { setControls(java.util.EnumSet.of(Control.MOVE,Control.LOOK)); }
+   private boolean available() {
+    return movementMode==0 && isTamed() && !isSitting() && getOwner()!=null
+      && !getOwner().isSpectator() && panicTicks==0 && hidingTicks==0 && pairingTicks==0;
+   }
+   @Override public boolean canStart() { return available() && squaredDistanceTo(getOwner())>32*32; }
+   @Override public boolean shouldContinue() { return available() && squaredDistanceTo(getOwner())>24*24; }
+   @Override public void start() { delay=0; }
+   @Override public void tick() {
+    var owner=getOwner();if(owner==null)return;
+    getLookControl().lookAt(owner,10,getMaxLookPitchChange());
+    if(--delay<=0) { delay=10;navigation.startMovingTo(owner,1.1); }
+   }
+   @Override public void stop() { navigation.stop(); }
   });
   goalSelector.add(3,new FollowOwnerGoal(this,1.0,1.5F,.8F) {
    @Override public boolean canStart() { return movementMode==1 && super.canStart(); }
@@ -121,7 +139,17 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
    }
    @Override public void stop() { navigation.stop(); }
   });
-  goalSelector.add(4,new WanderAroundFarGoal(this,0.65));
+  goalSelector.add(3,new Goal() {
+   { setControls(java.util.EnumSet.of(Control.MOVE)); }
+   @Override public boolean canStart() { return stagePerformer && !isTamed() && !isSitting() && stageHome!=null && !performing && squaredDistanceTo(stageHome.getX()+.5,stageHome.getY(),stageHome.getZ()+.5)>16; }
+   @Override public boolean shouldContinue() { return stagePerformer && !isTamed() && stageHome!=null && !isSitting() && squaredDistanceTo(stageHome.getX()+.5,stageHome.getY(),stageHome.getZ()+.5)>4; }
+   @Override public void tick() { navigation.startMovingTo(stageHome.getX()+.5,stageHome.getY(),stageHome.getZ()+.5,.65); }
+   @Override public void stop() { navigation.stop(); }
+  });
+  goalSelector.add(4,new WanderAroundFarGoal(this,0.65) {
+   @Override public boolean canStart() { return !stagePerformer && super.canStart(); }
+   @Override public boolean shouldContinue() { return !stagePerformer && super.shouldContinue(); }
+  });
   goalSelector.add(5,new LookAtEntityGoal(this,PlayerEntity.class,6.0F));
   goalSelector.add(6,new LookAroundGoal(this));
  }
@@ -141,7 +169,7 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
    BtrAdvancements.grant(player,"quartet",kind().id);
    if(held.isOf(Items.STICK) && player.isSneaking()) {
     movementMode=(movementMode+1)%3;setSitting(false);navigation.stop();
-    player.sendMessage(net.minecraft.text.Text.literal(new String[]{"Следовать за хозяином","Держаться рядом","Гулять в радиусе 16 блоков"}[movementMode]),false);
+    player.sendMessage(Text.translatable("message.bocchi.movement."+new String[]{"follow","close","roam"}[movementMode]),false);
     return ActionResult.SUCCESS;
    }
    if(held.isOf(kind().treat) && growthTicks>0) {
@@ -185,6 +213,10 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   super.tick();
   if (!(getWorld() instanceof ServerWorld world) || !isAlive()) return;
   setInvisible(true);
+  // A template's relative position is rotated by Minecraft after NBT is read.
+  // Capture its final world position on the first tick, not during NBT loading.
+  if(stagePerformer && stageHome==null) stageHome=getBlockPos().toImmutable();
+  if(stagePerformer && isTamed()) { stagePerformer=false;stageHome=null; }
   if(age%20==0) ensureNoPushTeam(world);
   if(rehearsalCooldown>0) rehearsalCooldown--;
   if(breedingCooldown>0) breedingCooldown--;
@@ -219,13 +251,20 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
     world.playSound(null,getBlockPos(),SoundEvents.BLOCK_NOTE_BLOCK_SNARE.value(),net.minecraft.sound.SoundCategory.NEUTRAL,.15F,1.4F);
    }
   }
-  if(age%4==0 && !isSitting() && pairingTicks==0) {
-   for(var other:world.getEntitiesByClass(CompanionEntity.class,getBoundingBox().expand(.2),girl->girl!=this && girl.isAlive())) {
-    double dx=getX()-other.getX(),dz=getZ()-other.getZ(),distance=dx*dx+dz*dz;
-    if(distance>=.2025) continue;
-    if(distance<.0001) { dx=getId()<other.getId()?1:-1;dz=0;distance=1; }
-    double strength=.015/Math.sqrt(distance);
-    addVelocity(dx*strength,0,dz*strength);
+  if(age%2==0 && pairingTicks==0 && !hasVehicle()) {
+   // Resolve each pair once, including resting pets. Move through Minecraft's
+   // collision resolver so separation cannot push them through walls.
+   for(var other:world.getEntitiesByClass(CompanionEntity.class,getBoundingBox().expand(.7),
+       girl->girl.getId()>getId() && girl.isAlive() && girl.pairingTicks==0 && !girl.hasVehicle())) {
+    double dx=getX()-other.getX(),dz=getZ()-other.getZ();
+    double distance=Math.sqrt(dx*dx+dz*dz);
+    double spacing=(getWidth()+other.getWidth())*.5+.18;
+    if(distance>=spacing || Math.abs(getY()-other.getY())>.5) continue;
+    if(distance<.0001) { dx=1;dz=0; } else { dx/=distance;dz/=distance; }
+    double correction=Math.min(.06,(spacing-distance)*.5);
+    var offset=new net.minecraft.util.math.Vec3d(dx*correction,0,dz*correction);
+    move(MovementType.SELF,offset);
+    other.move(MovementType.SELF,offset.negate());
    }
   }
   tickHumming(world);
@@ -382,8 +421,10 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
   private int elapsed,played,searchDelay,sessionLength;
   RehearsalGoal() { setControls(java.util.EnumSet.of(Control.MOVE,Control.LOOK)); }
   private boolean available() {
-   return isTamed() && growthTicks==0 && !isSitting() && !hummingMuted && panicTicks==0 && hidingTicks==0
-     && pairingTicks==0 && getHealth()>=getMaxHealth() && getOwner()!=null && squaredDistanceTo(getOwner())<256;
+   boolean audience=stagePerformer && !isTamed() && getWorld().getClosestPlayer(CompanionEntity.this,24)!=null;
+   boolean ownerNearby=isTamed() && getOwner()!=null && squaredDistanceTo(getOwner())<256;
+   return (audience || ownerNearby) && growthTicks==0 && !isSitting() && !hummingMuted && panicTicks==0 && hidingTicks==0
+     && pairingTicks==0 && getHealth()>=getMaxHealth();
   }
   private String instrumentId() { return switch(kind()) {case NIJIKA->"drum_kit";case KITA->"microphone";default->"guitar_stand";}; }
   @Override public boolean canStart() {
@@ -391,13 +432,14 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
    searchDelay=80;
    for(BlockPos candidate:BlockPos.iterateOutwards(getBlockPos(),8,3,8)) {
     if(!getWorld().getBlockState(candidate).isOf(BocchiMod.BLOCKS.get(instrumentId())))continue;
-    if(getWorld() instanceof ServerWorld world && !world.getEntitiesByClass(CompanionEntity.class,getBoundingBox().expand(10),girl->girl!=CompanionEntity.this && girl.performing).isEmpty())return false;
+    if(getWorld() instanceof ServerWorld world && !world.getEntitiesByClass(CompanionEntity.class,getBoundingBox().expand(10),
+        girl->girl!=CompanionEntity.this && girl.performing && (!stagePerformer || !girl.stagePerformer || candidate.equals(girl.rehearsalInstrument))).isEmpty())continue;
     instrument=candidate.toImmutable();return true;
    }
    return false;
   }
   @Override public boolean shouldContinue() { return available() && (played>0 || elapsed<240) && played<sessionLength && instrument!=null && getWorld().getBlockState(instrument).isOf(BocchiMod.BLOCKS.get(instrumentId())); }
-  @Override public void start() { elapsed=played=0;sessionLength=1800+random.nextInt(1201);performing=true;hummingStep=-1; }
+  @Override public void start() { elapsed=played=0;sessionLength=1800+random.nextInt(1201);performing=true;rehearsalInstrument=instrument;hummingStep=-1; }
   @Override public void tick() {
    elapsed++;
    double x=instrument.getX()+.5,y=instrument.getY(),z=instrument.getZ()+.5;
@@ -419,7 +461,7 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
     world.spawnParticles(ParticleTypes.NOTE,x,y+.9,z,0,note/24.0,0,0,1);
    }
   }
-  @Override public void stop() { navigation.stop();performing=false;instrument=null;rehearsalCooldown=1200+random.nextInt(1200);hummingDelay=200; }
+  @Override public void stop() { navigation.stop();performing=false;instrument=null;rehearsalInstrument=null;rehearsalCooldown=1200+random.nextInt(1200);hummingDelay=200; }
  }
  private final class FollowBandGoal extends Goal {
   private CompanionEntity leader;
@@ -457,10 +499,19 @@ public class CompanionEntity extends WolfEntity implements PolymerEntity {
  }
  @Override public void writeCustomDataToNbt(NbtCompound nbt) { super.writeCustomDataToNbt(nbt); nbt.putInt("BocchiHiding",hidingTicks); nbt.putInt("BocchiPanic",panicTicks); if(bandLeader!=null) nbt.putUuid("BocchiBandLeader",bandLeader);
   nbt.putIntArray("BtrGenes",new int[]{genes().heroineA(),genes().heroineB(),genes().generation()});
+  nbt.putBoolean("BtrStagePerformer",stagePerformer);
+  if(stageHome!=null) nbt.putIntArray("BtrStageHome",new int[]{stageHome.getX(),stageHome.getY(),stageHome.getZ()});
   nbt.putInt("BtrMovementMode",movementMode);
   nbt.putBoolean("BtrHummingMuted",hummingMuted);
   nbt.putInt("BtrGrowth",growthTicks);nbt.putInt("BtrBreedCooldown",breedingCooldown);nbt.putInt("BtrPairing",pairingTicks); }
  @Override public void readCustomDataFromNbt(NbtCompound nbt) { super.readCustomDataFromNbt(nbt); hidingTicks=nbt.getInt("BocchiHiding"); panicTicks=nbt.getInt("BocchiPanic"); int[] g=nbt.getIntArray("BtrGenes");if(g.length==3) genes=new CompanionGenes(g[0],g[1],g[2]);
+  stagePerformer=nbt.getBoolean("BtrStagePerformer");
+  int[] home=nbt.getIntArray("BtrStageHome");stageHome=home.length==3?new BlockPos(home[0],home[1],home[2]):null;
+  // Earlier summoners wrote automatic Russian custom names. Remove only those
+  // exact generated labels; player name-tag names and translated components stay.
+  var custom=getCustomName();
+  if(custom!=null && custom.getContent() instanceof net.minecraft.text.PlainTextContent
+      && custom.getSiblings().isEmpty() && custom.getStyle().isEmpty() && CompanionNames.isLegacyGeneratedName(custom.getString())) setCustomName(null);
   movementMode=Math.max(0,Math.min(2,nbt.getInt("BtrMovementMode")));
   hummingMuted=nbt.getBoolean("BtrHummingMuted");hummingStep=-1;
   growthTicks=Math.max(0,Math.min(6000,nbt.getInt("BtrGrowth")));breedingCooldown=Math.max(0,Math.min(6000,nbt.getInt("BtrBreedCooldown")));pairingTicks=Math.max(0,Math.min(600,nbt.getInt("BtrPairing")));lastScale=-1;

@@ -95,3 +95,6 @@ js(D/'worldgen/structure/heroine_statue.json',{'type':'minecraft:jigsaw','biomes
 js(D/'worldgen/structure_set/heroine_statues.json',{'structures':[{'structure':'bocchi:heroine_statue','weight':1}],'placement':{'type':'minecraft:random_spread','spacing':48,'separation':16,'salt':2374018}})
 js(D/'tags/worldgen/biome/has_statue.json',{'values':['minecraft:plains','minecraft:sunflower_plains','minecraft:meadow','minecraft:birch_forest']})
 print('Expansion: 10 advancements x 3 languages, 4 statue templates, 64 recipes.')
+
+from standardize_names import standardize
+standardize()

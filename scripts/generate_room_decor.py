@@ -87,3 +87,6 @@ for locale,index in [('ru_ru',0),('be_by',1),('en_us',2)]:
  js(path,lang)
 js(D/'advancement/recipes/welcome.json',{'criteria':{'join':{'trigger':'minecraft:tick'}},'rewards':{'recipes':['bocchi:'+p.stem for p in sorted((D/'recipe').glob('*.json'))]}})
 print('Room decor: 8 blocks, 8 recipes, RU/BE/EN.')
+
+from standardize_names import standardize
+standardize()
