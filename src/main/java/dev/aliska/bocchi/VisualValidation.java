@@ -62,17 +62,19 @@ final class VisualValidation {
     if(template.getSize().getY()!=18 || templateNbt.getList("blocks",NbtElement.COMPOUND_TYPE).size()<500) throw new IllegalStateException("Invalid statue template "+kind.id);
    }
   } catch(Exception e) { throw new IllegalStateException("Statue validation failed",e); }
+  // Entity names belong to Entity NBT, not readCustomDataFromNbt. Use the full
+  // serialization path so CustomName is loaded before companion migration.
   // These checks run in CI against Minecraft's actual NBT/block registries.
-  var legacy=new NbtCompound();probe.writeCustomDataToNbt(legacy);
+  var legacy=new NbtCompound();probe.writeNbt(legacy);
   legacy.putString("CustomName","{\"text\":\"Хитори · чиби\"}");
-  probe.readCustomDataFromNbt(legacy);
+  probe.readNbt(legacy);
   if(probe.hasCustomName()) throw new IllegalStateException("Automatic legacy name was not migrated");
   legacy.putString("CustomName","{\"text\":\"Алискина подруга\"}");
   legacy.putBoolean("BtrStagePerformer",true);legacy.putIntArray("BtrStageHome",new int[]{4,65,9});
-  probe.readCustomDataFromNbt(legacy);
-  var stageSave=new NbtCompound();probe.writeCustomDataToNbt(stageSave);
+  probe.readNbt(legacy);
+  var stageSave=new NbtCompound();probe.writeNbt(stageSave);
   if(!probe.getName().getString().equals("Алискина подруга") || !stageSave.getBoolean("BtrStagePerformer")
-      || !java.util.Arrays.equals(stageSave.getIntArray("BtrStageHome"),new int[]{4,65,9})) throw new IllegalStateException("Stage/name persistence failed");
+      || !java.util.Arrays.equals(stageSave.getIntArray("BtrStageHome"),new int[]{4,65,9})) throw new IllegalStateException("Stage/name persistence failed: name="+probe.getName().getString()+", stage="+stageSave.getBoolean("BtrStagePerformer")+", home="+java.util.Arrays.toString(stageSave.getIntArray("BtrStageHome")));
   try {
    var mod=net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("bocchi").orElseThrow();
    for(String style:new String[]{"starry","school","indie"}) for(String population:new String[]{"chibi","tsum","mixed"}) {
